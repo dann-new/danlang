@@ -78,6 +78,26 @@ Because it **catches typos**. If you write `when mood == angy`, danlang tells yo
 
 Without this, the rule would silently never work, and you'd spend an hour wondering why.
 
+## Describing the answers for the classifier
+
+The classifier has to know what each answer **means**. Write a short description after each value, in quotes. You
+can also write the question itself, right after the field's name:
+
+```dan
+field topic "What is the message about?" = [
+  greeting "The person says hello or makes small talk.",
+  orders "About an existing order: where it is, its status.",
+  other "Anything else.",
+]
+
+flow main
+  hi: when topic == greeting -> reply "Hi!"
+  open: else -> model
+```
+
+Your app (or the danlang Studio) sends these descriptions to the classifier, so the meaning lives right next to the
+rules that use it. Descriptions are optional: a field without them is one your app fills in itself.
+
 ## Where do the answers come from?
 
 From your classifier. You decide which fields exist, as long as your classifier (a small AI model, simple keyword

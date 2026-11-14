@@ -73,7 +73,7 @@ danlang then uses that guess to pick the right rule. You'll learn how in the nex
 | Your first flow | write rules that run from top to bottom |
 | Messages | give the bot many ways to say the same thing |
 | Fields | use what the classifier tells you about a message |
-| How sure? | only follow a rule when the classifier is sure enough |
+| How sure? | set how sure the classifier must be, for everything or one rule |
 | And, or, not | combine rules |
 | Rules inside rules | make a tree of decisions |
 | Asking questions | ask for missing details, without asking twice |

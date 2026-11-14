@@ -12,6 +12,9 @@ export function check(program: Program): Diagnostic[] {
   const warn = (message: string, pos: Pos) => out.push({ severity: "warning", message, pos });
   const firstPos: Pos = { file: program.files[0] ?? "main.dan", line: 1, col: 1 };
 
+  if (program.confidence !== undefined && (program.confidence < 0 || program.confidence > 1))
+    err(`confidence must be between 0% and 100% (got ${program.confidence}).`, firstPos);
+
   const entry = program.flows[program.entry];
   if (!entry) err(`There is no \`flow ${program.entry}\`. Every program starts there.`, firstPos);
 
@@ -65,7 +68,7 @@ export function check(program: Program): Diagnostic[] {
           else min = v;
         } else min = cond.min;
         if (min !== undefined && (min < 0 || min > 1))
-          err(`A confidence must be between 0 and 1 (got ${min}).`, cond.pos);
+          err(`A confidence must be between 0 and 1, or 0% and 100% (got ${min}).`, cond.pos);
       }
     }
   };

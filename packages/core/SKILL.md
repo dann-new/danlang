@@ -12,8 +12,13 @@ and takes the **first** rule that fits. Only the `model` action calls the LLM; e
 ## Syntax (complete)
 
 ```dan
-field intent = [greeting, orders, other]    # a fact the classifier answers + every allowed value
-let sure = 0.8                             # a named number
+field intent "What is it about?" = [       # a fact the classifier answers + every allowed value
+  greeting "Says hello.",                  # optional descriptions (sent to the classifier)
+  orders "About an existing order.",
+  other,
+]
+confidence = 80%                           # min confidence for every == test (default 80% if omitted)
+let sure = 0.8                             # a named number (95% and 0.95 are the same)
 let hello = ["Hi!", "Hello!"]              # named messages (one picked at random); may span lines:
 let sorry = [
   "Sorry, I only help with your orders.",
@@ -42,7 +47,8 @@ and must be unique across all files.
 Names: letters, digits, `_`, `-`; unique within one level. Indent with spaces (2 per level), never tabs.
 
 **Tests:**
-- `field == value`, `field == [a, b]` (any of), optional `>= 0.8` or `>= let_name` (confidence; missing = 0)
+- `field == value`, `field == [a, b]` (any of). Needs confidence >= the rule's own `>= 90%` / `>= 0.9` / `>= let_name`,
+  else the program's `confidence = ...`, else 80%. A fact passed with no confidence counts as 100%.
 - `has check_name`
 - `asked message_list` (the bot's previous reply was one of that `ask`'s messages)
 - `and`, `or`, `not`, `( )` (`and` binds tighter than `or`)
@@ -81,7 +87,7 @@ flow main
 
 Safety rules to follow when writing trees:
 - Put "classifier failed" first (e.g. `when source == fallback -> model`).
-- Use `>=` on every rule that answers without the LLM; use a higher bar (0.9) for `refuse`.
+- Set `confidence` once; add a stricter `>= 90%` on `refuse` rules.
 - When unsure what the user wants, route to `model`, not to a fixed reply.
 - Give replies 2-3 phrasings so the bot doesn't sound robotic.
 - Split a flow into its own flow/file once it has more than ~3 levels.

@@ -62,8 +62,8 @@ describe("goes to the AI", () => {
   test("unsure off-topic is not refused", () => {
     expect(decide({ text: "weather?", topic: "off_topic", sure: 0.7 })).toMatchObject({ kind: "model", path: "open" });
   });
-  test("unsure action", () => {
-    expect(decide({ text: "order", topic: "orders", action: "track_order", sure: 0.5 }).path).toBe("shop/open");
+  test("unsure classifier: below the global confidence (80%), the topic test fails", () => {
+    expect(decide({ text: "order", topic: "orders", action: "track_order", sure: 0.5 }).path).toBe("open");
   });
   test("classifier down: everything goes to the AI", () => {
     expect(decide({ text: "hi", topic: "greeting", source: "fallback" })).toMatchObject({ kind: "model", path: "classifier-down" });

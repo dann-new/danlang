@@ -7,3 +7,6 @@ dist
 .next
 next-env.d.ts
 *.tsbuildinfo
+
+# Private test copy of JuanStack's tree (not part of danlang)
+examples/juanstack/

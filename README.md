@@ -3,6 +3,8 @@
 A small language for **chat routing**: write how an AI assistant decides what to do with a message in plain,
 readable `.dan` files. Cheap answers first (a small classifier or simple rules), the expensive LLM only when needed.
 
+**See it:** `pnpm studio` opens the Studio at http://localhost:3200: your tree as nodes, and a test chat that routes messages through the real classifier.
+
 **Learn it:** run `pnpm dev:docs` and open http://localhost:3100 (lessons with Try it examples), or read `docs/lessons/`.
 
 Status: **v0, step 1** (parser, checker, engine). Next: CLI (`dan check`, `dan test`), providers (classifier and LLM
@@ -44,8 +46,9 @@ reaches an action after `->`.
 | Statement | Meaning |
 |---|---|
 | `use "./file.dan"` | Include another file (relative path). |
-| `field name = [a, b, c]` | A fact the classifier answers, and its allowed values. Typos are caught. |
-| `let name = 0.8` | A named number (used for confidences). |
+| `field name "question?" = [a "meaning", b, c]` | A fact the classifier answers and its allowed values (descriptions optional, sent to the classifier). Typos are caught. |
+| `confidence = 80%` | Minimum classifier confidence for every `==` test (default 80%). A rule's own `>= 90%` overrides it. |
+| `let name = 0.8` | A named number (`95%` = `0.95`). |
 | `let name = ["Hi!", "Hello!"]` | A list of messages (may span lines). One is picked at random. |
 | `check name = /regex/i` | A test on the message text. Comments are not allowed on this line. |
 | `check name = host` | A test the app provides in code (e.g. needs today's date). |
@@ -85,5 +88,6 @@ functions, browsers and React Native. No extra server.
 - `packages/core`: parser → linker → checker → engine. `pnpm verify` runs typecheck + tests.
 - `docs/lessons`: 14 beginner lessons (the website shows these; every example is tested).
 - `apps/docs`: the Next.js website (private, never published).
+- `apps/studio`: the Studio, a local tool (private, never published). Needs `.env.local` (see `.env.example`).
 - `packages/vscode`: editor colors (`pnpm vscode:install`).
 - `examples/shop`: a two-file shop assistant, tested end to end.

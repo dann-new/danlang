@@ -4,14 +4,26 @@
 
 use "./shop.dan"
 
-# What the classifier tells us about each message.
+# Set by the app: did the classifier answer, or did it fail?
 field source = [classifier, fallback]
-field topic = [greeting, orders, returns, off_topic, other]
-field action = [track_order, return_item, other]
 
-# How sure the classifier must be (1 = 100% sure).
-let sure = 0.8
-let very_sure = 0.9
+# What the classifier tells us about each message. The descriptions are sent to the classifier.
+field topic "What is the message about?" = [
+  greeting "The person says hello or makes small talk.",
+  orders "About an existing order: where it is, when it arrives, its status.",
+  returns "The person wants to send something back or get a refund.",
+  off_topic "Nothing to do with the shop, its orders or returns.",
+  other "Anything else about the shop.",
+]
+
+field action "What does the person want done?" = [
+  track_order "Find out where an order is or when it arrives.",
+  return_item "Return an item or ask for a refund.",
+  other "Anything else.",
+]
+
+# Every == test needs the classifier to be at least this sure, unless the rule says otherwise.
+confidence = 80%
 
 let hello_messages = [
   "Hi! How can I help with your order today?",
@@ -25,7 +37,7 @@ let off_topic_messages = [
 
 flow main
   classifier-down: when source == fallback -> model
-  hello: when topic == greeting >= sure -> reply hello_messages
-  off-topic: when topic == off_topic >= very_sure -> refuse off_topic_messages
+  hello: when topic == greeting -> reply hello_messages
+  off-topic: when topic == off_topic >= 90% -> refuse off_topic_messages   # be extra sure before saying no
   shop: when topic == [orders, returns] -> shop
   open: else -> model

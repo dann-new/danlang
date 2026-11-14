@@ -3,11 +3,21 @@
   "name": "danlang",
   "scopeName": "source.dan",
   "patterns": [
-    { "include": "#check-line" },
-    { "include": "#comment" },
-    { "include": "#statement" },
-    { "include": "#branch" },
-    { "include": "#expr" }
+    {
+      "include": "#check-line"
+    },
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#statement"
+    },
+    {
+      "include": "#branch"
+    },
+    {
+      "include": "#expr"
+    }
   ],
   "repository": {
     "comment": {
@@ -18,14 +28,30 @@
       "comment": "check name = /regex/flags  or  check name = host. The regex is raw, so no comment rule here.",
       "match": "^(check)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*(=)\\s*(?:(host)|(/)(.*)(/)([a-z]*))\\s*$",
       "captures": {
-        "1": { "name": "keyword.declaration.check.dan" },
-        "2": { "name": "entity.name.function.check.dan" },
-        "3": { "name": "keyword.operator.assignment.dan" },
-        "4": { "name": "constant.language.host.dan" },
-        "5": { "name": "punctuation.definition.string.begin.regexp.dan" },
-        "6": { "name": "string.regexp.dan" },
-        "7": { "name": "punctuation.definition.string.end.regexp.dan" },
-        "8": { "name": "keyword.other.regexp-flags.dan" }
+        "1": {
+          "name": "keyword.declaration.check.dan"
+        },
+        "2": {
+          "name": "entity.name.function.check.dan"
+        },
+        "3": {
+          "name": "keyword.operator.assignment.dan"
+        },
+        "4": {
+          "name": "constant.language.host.dan"
+        },
+        "5": {
+          "name": "punctuation.definition.string.begin.regexp.dan"
+        },
+        "6": {
+          "name": "string.regexp.dan"
+        },
+        "7": {
+          "name": "punctuation.definition.string.end.regexp.dan"
+        },
+        "8": {
+          "name": "keyword.other.regexp-flags.dan"
+        }
       }
     },
     "statement": {
@@ -37,72 +63,120 @@
         {
           "match": "^(flow)\\s+([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
-            "1": { "name": "keyword.declaration.flow.dan" },
-            "2": { "name": "entity.name.type.flow.dan" }
+            "1": {
+              "name": "keyword.declaration.flow.dan"
+            },
+            "2": {
+              "name": "entity.name.type.flow.dan"
+            }
           }
         },
         {
           "match": "^(field)\\s+([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
-            "1": { "name": "keyword.declaration.field.dan" },
-            "2": { "name": "variable.other.field.dan" }
+            "1": {
+              "name": "keyword.declaration.field.dan"
+            },
+            "2": {
+              "name": "variable.other.field.dan"
+            }
           }
         },
         {
           "match": "^(let)\\s+([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
-            "1": { "name": "keyword.declaration.let.dan" },
-            "2": { "name": "variable.other.constant.dan" }
+            "1": {
+              "name": "keyword.declaration.let.dan"
+            },
+            "2": {
+              "name": "variable.other.constant.dan"
+            }
           }
+        },
+        {
+          "match": "^(confidence)\\b",
+          "name": "keyword.declaration.confidence.dan"
         }
       ]
     },
     "branch": {
       "match": "^(\\s+)([A-Za-z0-9_][A-Za-z0-9_-]*)(:)(?=\\s|$)",
       "captures": {
-        "2": { "name": "entity.name.tag.branch.dan" },
-        "3": { "name": "punctuation.separator.branch.dan" }
+        "2": {
+          "name": "entity.name.tag.branch.dan"
+        },
+        "3": {
+          "name": "punctuation.separator.branch.dan"
+        }
       }
     },
     "expr": {
       "patterns": [
-        { "include": "#comment" },
-        { "include": "#string" },
+        {
+          "include": "#comment"
+        },
+        {
+          "include": "#string"
+        },
         {
           "match": "(->)\\s*(model)\\b",
           "captures": {
-            "1": { "name": "keyword.operator.arrow.dan" },
-            "2": { "name": "support.function.model.dan" }
+            "1": {
+              "name": "keyword.operator.arrow.dan"
+            },
+            "2": {
+              "name": "support.function.model.dan"
+            }
           }
         },
         {
           "match": "(->)\\s*(reply|refuse)\\b",
           "captures": {
-            "1": { "name": "keyword.operator.arrow.dan" },
-            "2": { "name": "support.function.action.dan" }
+            "1": {
+              "name": "keyword.operator.arrow.dan"
+            },
+            "2": {
+              "name": "support.function.action.dan"
+            }
           }
         },
         {
           "match": "(->)\\s*(ask)\\s+([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
-            "1": { "name": "keyword.operator.arrow.dan" },
-            "2": { "name": "support.function.action.dan" },
-            "3": { "name": "variable.parameter.ask.dan" }
+            "1": {
+              "name": "keyword.operator.arrow.dan"
+            },
+            "2": {
+              "name": "support.function.action.dan"
+            },
+            "3": {
+              "name": "variable.parameter.ask.dan"
+            }
           }
         },
         {
           "match": "(->)\\s*(direct)\\s+([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
-            "1": { "name": "keyword.operator.arrow.dan" },
-            "2": { "name": "support.function.action.dan" },
-            "3": { "name": "entity.name.function.handler.dan" }
+            "1": {
+              "name": "keyword.operator.arrow.dan"
+            },
+            "2": {
+              "name": "support.function.action.dan"
+            },
+            "3": {
+              "name": "entity.name.function.handler.dan"
+            }
           }
         },
         {
           "match": "(->)\\s*([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
-            "1": { "name": "keyword.operator.arrow.dan" },
-            "2": { "name": "entity.name.type.flow.dan" }
+            "1": {
+              "name": "keyword.operator.arrow.dan"
+            },
+            "2": {
+              "name": "entity.name.type.flow.dan"
+            }
           }
         },
         {
@@ -116,15 +190,23 @@
         {
           "match": "\\b(has)\\s+([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
-            "1": { "name": "keyword.operator.logical.dan" },
-            "2": { "name": "entity.name.function.check.dan" }
+            "1": {
+              "name": "keyword.operator.logical.dan"
+            },
+            "2": {
+              "name": "entity.name.function.check.dan"
+            }
           }
         },
         {
           "match": "\\b(asked)\\s+([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
-            "1": { "name": "keyword.operator.logical.dan" },
-            "2": { "name": "variable.parameter.ask.dan" }
+            "1": {
+              "name": "keyword.operator.logical.dan"
+            },
+            "2": {
+              "name": "variable.parameter.ask.dan"
+            }
           }
         },
         {
@@ -132,7 +214,7 @@
           "name": "keyword.operator.comparison.dan"
         },
         {
-          "match": "\\b\\d+(\\.\\d+)?\\b",
+          "match": "\\b\\d+(\\.\\d+)?%?",
           "name": "constant.numeric.dan"
         },
         {
@@ -146,7 +228,10 @@
       "end": "\"",
       "name": "string.quoted.double.dan",
       "patterns": [
-        { "match": "\\\\.", "name": "constant.character.escape.dan" }
+        {
+          "match": "\\\\.",
+          "name": "constant.character.escape.dan"
+        }
       ]
     }
   }

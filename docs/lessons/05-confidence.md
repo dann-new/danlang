@@ -1,68 +1,96 @@
 ---
 title: How sure?
-summary: Only follow a rule when the classifier is sure enough. Otherwise let the AI handle it.
+summary: Set how sure the classifier must be, once for everything, and change it for single rules.
 ---
 
 # How sure?
 
-The classifier doesn't just guess the topic. It also says **how sure** it is, as a number from `0` to `1`:
+The classifier doesn't just guess the topic. It also says **how sure** it is:
 
-| Number | Means |
+| It says | Means |
 |---|---|
-| `1` | 100% sure |
-| `0.9` | 90% sure |
-| `0.5` | 50/50, a coin flip |
-| `0` | no idea |
+| `100%` (or `1`) | completely sure |
+| `90%` (or `0.9`) | very sure |
+| `50%` (or `0.5`) | a coin flip |
+| `0%` (or `0`) | no idea |
 
-If the classifier is only 50% sure a message is about orders, you probably don't want to answer with an order update. It's safer to
-let the big AI read it.
+If the classifier is only 50% sure a message is about orders, you don't want to answer with an order update. It's
+safer to let the big AI read it.
 
-## Writing "sure enough": `>=`
+danlang lets you write these numbers as percentages (`95%`) or as decimals (`0.95`). They mean the same thing.
 
-Add `>=` and a number after the field. `>=` means **"at least"**.
+## One setting for everything: `confidence`
+
+Write `confidence` once, at the top of your file. Every `==` test then needs the classifier to be at least that sure:
 
 ```dan
-field topic = [orders, other]
+confidence = 80%
+
+field topic = [greeting, orders, other]
 
 flow main
-  order: when topic == orders >= 0.8 -> reply "Here's where your order is."
+  hi: when topic == greeting -> reply "Hi!"
+  order: when topic == orders -> reply "Here's where your order is."
   open: else -> model
 ```
 
-Read it as: *"when the topic is orders, and the classifier is **at least 80% sure**, reply with the order status."*
+Read it as: *"only follow a rule when the classifier is at least 80% sure."*
 
-Try it: set **topic** to `orders`, then slide the **sure** bar below and above 0.8.
+Try it: set **topic** to `orders`, then slide the **sure** bar below and above 80%.
 
-## Give the number a name
+## If you don't set it
 
-You'll often use the same number in many rules. Save it with `let` so you only change it in one place:
+You don't have to write `confidence`. If it's missing, danlang uses **80%**. That's a safe starting point for most
+bots.
+
+## Different for one rule: `>=`
+
+Sometimes one rule needs to be stricter, or more relaxed, than the rest. Add `>=` and a number to that rule. `>=`
+means **"at least"**:
 
 ```dan
-field topic = [orders, returns, other]
+confidence = 80%
 
-let sure = 0.8
+field topic = [greeting, off_topic, other]
 
 flow main
-  order: when topic == orders >= sure -> reply "Here's where your order is."
-  return: when topic == returns >= sure -> reply "Let's start your return."
+  hi: when topic == greeting >= 60% -> reply "Hi!"
+  no: when topic == off_topic >= 95% -> refuse "Sorry, I only help with your orders."
   open: else -> model
 ```
 
-If later you think 0.8 is too strict, change `let sure = 0.7` and every rule follows.
+- `hi` is relaxed (60%). A wrong "Hi!" does no harm.
+- `no` is strict (95%). Turning away a real customer by mistake is bad.
+- Every other `==` test uses the 80% from the top.
 
-## When to use it
+So the rule is simple: **the rule's own `>=` wins. If it has none, `confidence` is used. If that's missing too, 80%.**
 
-- **Use it** on rules that answer without the AI (`reply`, `direct`, `refuse`). A wrong guess here gives the person a
-  wrong answer.
-- **You can skip it** on rules that send the message to the AI anyway (`model`), because the AI reads the message
-  itself.
+## Give a number a name
 
-> **Good habit:** be extra careful with "refuse" rules. Saying "I can't help" to a real customer is worse than letting
-> the AI answer. A good starting point is `0.9` (90% sure) before refusing.
+You can also save a number with `let` and use the name after `>=`:
+
+```dan
+let strict = 95%
+
+field topic = [off_topic, other]
+
+flow main
+  no: when topic == off_topic >= strict -> refuse "Sorry, I only help with your orders."
+  open: else -> model
+```
+
+## Facts your app sets
+
+Some fields aren't guessed by the classifier at all. Your app knows them for sure (for example, *"is the
+classifier working?"*). A fact that comes without a "how sure" number counts as **100% sure**, so `confidence` never
+blocks it.
+
+> **Good habit:** use a high number (90% or more) on `refuse` rules, and a normal one everywhere else. When in doubt,
+> letting the big AI answer is safer than a wrong fixed answer.
 
 <details>
-<summary>Test yourself: the classifier is 0.75 sure. Does <code>when topic == orders >= 0.8</code> fit?</summary>
+<summary>Test yourself: <code>confidence = 80%</code>, and a rule says <code>>= 70%</code>. The classifier is 75% sure. Does the rule fit?</summary>
 
-No. 0.75 is less than 0.8, so the rule is skipped and danlang moves to the next one.
+Yes. The rule's own `>= 70%` wins over the 80% at the top, and 75% is at least 70%.
 
 </details>

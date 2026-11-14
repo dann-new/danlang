@@ -12,7 +12,10 @@ export type Turn = {
   text: string;
   /** Classifier answers, e.g. { topic: "orders", action: "track_order" }. */
   facts: Record<string, string | undefined>;
-  /** How sure the classifier is about each fact, 0..1. Missing counts as 0 for `>=` tests. */
+  /**
+   * How sure the classifier is about each fact, 0..1. A fact with no confidence given (e.g. set by your own code)
+   * counts as certain (1).
+   */
   confidence?: Record<string, number | undefined>;
   /** The assistant's previous reply, for `asked <id>`. */
   lastReply?: string;
@@ -35,6 +38,9 @@ export type EngineOptions = {
   /** Picks one text from a list. Defaults to random; pass `() => 0` for tests. */
   pick?: (count: number) => number;
 };
+
+/** The minimum confidence for a `==` test when the program sets no `confidence = ...` and the rule no `>= ...`. */
+export const DEFAULT_CONFIDENCE = 0.8;
 
 export type Engine = { program: Program; decide: (turn: Turn) => Decision };
 
@@ -71,9 +77,14 @@ export function createEngine(program: Program, options: EngineOptions = {}): Eng
       case "is": {
         const value = turn.facts[cond.field];
         if (value === undefined || !cond.values.includes(value)) return false;
-        if (cond.min === undefined) return true;
-        const min = typeof cond.min === "string" ? (program.lets[cond.min] as number) : cond.min;
-        return (turn.confidence?.[cond.field] ?? 0) >= min;
+        // The rule's own `>= ...`, else the program's `confidence = ...`, else the default.
+        const min =
+          cond.min === undefined
+            ? (program.confidence ?? DEFAULT_CONFIDENCE)
+            : typeof cond.min === "string"
+              ? (program.lets[cond.min] as number)
+              : cond.min;
+        return (turn.confidence?.[cond.field] ?? 1) >= min;
       }
     }
   };

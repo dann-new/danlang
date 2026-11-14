@@ -52,9 +52,10 @@ function tokenize(src: string, offset: number, pos: (col: number) => Pos): Tok[]
       toks.push({ t: "str", v, col });
       continue;
     }
-    const num = /^\d+(\.\d+)?/.exec(src.slice(i));
+    const num = /^\d+(\.\d+)?(%?)/.exec(src.slice(i));
     if (num) {
-      toks.push({ t: "num", v: Number(num[0]), col });
+      // `95%` is the same as 0.95.
+      toks.push({ t: "num", v: num[2] ? Number(num[0].slice(0, -1)) / 100 : Number(num[0]), col });
       i += num[0].length;
       continue;
     }
@@ -275,7 +276,7 @@ function joinLists(lines: string[], file: string): { raw: string; lineNo: number
   const out: { raw: string; lineNo: number }[] = [];
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i]!;
-    if (!/^let\s/.test(raw)) {
+    if (!/^(let|field)\s/.test(raw)) {
       out.push({ raw, lineNo: i + 1 });
       continue;
     }
@@ -312,7 +313,7 @@ export function parse(text: string, file = "main.dan"): FileAst {
       stack = null;
       const toks = isCheck ? [{ t: "ident" as const, v: "check", col: 1 }] : tokenize(body, 0, at);
       const c = new Cursor(toks, at, body.length + 1);
-      const kw = c.ident("a statement: use, let, field, check or flow");
+      const kw = c.ident("a statement: use, let, field, confidence, check or flow");
       const pos = at(1);
       if (kw === "use") {
         const s = c.peek();
@@ -336,17 +337,42 @@ export function parse(text: string, file = "main.dan"): FileAst {
         c.end();
         ast.lets.push({ name, value, pos });
       } else if (kw === "field") {
+        // field topic = [greeting, other]
+        // field topic "Which topic fits?" = [greeting "The person says hello.", other "Anything else."]
         const name = c.ident("a field name after `field`");
+        let question: string | undefined;
+        const q = c.peek();
+        if (q?.t === "str") {
+          question = q.v;
+          c.i++;
+        }
         c.op("=");
         c.op("[");
-        const values = [c.ident("a value")];
-        while (c.isOp(",")) {
-          c.i++;
-          values.push(c.ident("a value"));
+        const values: string[] = [];
+        const describe: Record<string, string> = {};
+        while (!c.isOp("]")) {
+          const v = c.ident("a value");
+          values.push(v);
+          const d = c.peek();
+          if (d?.t === "str") {
+            describe[v] = d.v;
+            c.i++;
+          }
+          if (c.isOp(",")) c.i++;
+          else break;
         }
         c.op("]");
         c.end();
-        ast.fields.push({ name, values, pos });
+        if (!values.length) throw new DanError("A field needs at least one value.", pos);
+        ast.fields.push({ name, values, describe, ...(question ? { question } : {}), pos });
+      } else if (kw === "confidence") {
+        c.op("=");
+        const v = c.peek();
+        if (v?.t !== "num") throw new DanError("Write it like `confidence = 80%` or `confidence = 0.8`.", c.here());
+        c.i++;
+        c.end();
+        if (ast.confidence) throw new DanError("`confidence` is set twice in this file.", pos);
+        ast.confidence = { value: v.v, pos };
       } else if (kw === "check") {
         // `check amount = /regex/flags` or `check plain_range = host`. Read the raw text: regexes don't tokenize.
         const m = /^check\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$/.exec(body);
@@ -367,7 +393,7 @@ export function parse(text: string, file = "main.dan"): FileAst {
         ast.flows.push(flow);
         stack = [{ indent: 0, children: flow.branches }];
       } else {
-        throw new DanError(`Unknown statement "${kw}". Expected use, let, field, check or flow.`, pos);
+        throw new DanError(`Unknown statement "${kw}". Expected use, let, field, confidence, check or flow.`, pos);
       }
       return;
     }

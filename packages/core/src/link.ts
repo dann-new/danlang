@@ -27,7 +27,7 @@ function normalize(p: string): string {
 }
 
 export function link(entryFile: string, load: Loader, entryFlow = "main"): Program {
-  const program: Program = { entry: entryFlow, files: [], lets: {}, fields: {}, checks: {}, asks: {}, flows: {} };
+  const program: Program = { entry: entryFlow, files: [], lets: {}, fields: {}, fieldInfo: {}, checks: {}, asks: {}, flows: {} };
   const seen = new Set<string>();
 
   const visit = (file: string) => {
@@ -96,6 +96,11 @@ function merge(p: Program, ast: FileAst) {
   for (const f of ast.fields) {
     if (f.name in p.fields) throw new DanError(`field "${f.name}" is defined twice.`, f.pos);
     p.fields[f.name] = f.values;
+    p.fieldInfo[f.name] = { describe: f.describe, ...(f.question ? { question: f.question } : {}) };
+  }
+  if (ast.confidence) {
+    if (p.confidence !== undefined) throw new DanError("`confidence` is set in more than one file. Keep one.", ast.confidence.pos);
+    p.confidence = ast.confidence.value;
   }
   for (const c of ast.checks) {
     const prev = p.checks[c.name];

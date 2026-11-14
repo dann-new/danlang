@@ -7,7 +7,7 @@ const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 const span = (cls: string, s: string) => `<span class="t-${cls}">${esc(s)}</span>`;
 
 const TOKEN =
-  /("(?:\\.|[^"\\])*"?)|(#.*$)|(->|>=|==|=)|\b(flow|field|let|use|check|when|else|and|or|not|has|asked)\b|\b(model)\b|\b(reply|refuse|ask|direct)\b|(\b\d+(?:\.\d+)?\b)/g;
+  /("(?:\\.|[^"\\])*"?)|(#.*$)|(->|>=|==|=)|\b(flow|field|let|confidence|use|check|when|else|and|or|not|has|asked)\b|\b(model)\b|\b(reply|refuse|ask|direct)\b|(\b\d+(?:\.\d+)?%?)/g;
 
 function line(text: string): string {
   const check = /^(check)(\s+)([A-Za-z_]\w*)(\s*=\s*)(.*)$/.exec(text);

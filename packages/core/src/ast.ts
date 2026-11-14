@@ -56,7 +56,10 @@ export type FileAst = {
   uses: { path: string; pos: Pos }[];
   /** `let sure = 0.8` (a number) or `let hello = ["Hi!", "Hello!"]` / `let hello = "Hi!"` (messages). */
   lets: { name: string; value: number | string[]; pos: Pos }[];
-  fields: { name: string; values: string[]; pos: Pos }[];
+  /** `field topic = [greeting "says hello", other]`: values, with optional descriptions for the classifier. */
+  fields: { name: string; values: string[]; describe: Record<string, string>; question?: string; pos: Pos }[];
+  /** `confidence = 80%`: the minimum confidence every `==` test needs unless it says `>= ...` itself. */
+  confidence?: { value: number; pos: Pos };
   checks: CheckDef[];
   flows: Flow[];
 };
@@ -67,6 +70,10 @@ export type Program = {
   files: string[];
   lets: Record<string, number | string[]>;
   fields: Record<string, string[]>;
+  /** Descriptions and the question for each field, for building a classifier request. */
+  fieldInfo: Record<string, { question?: string; describe: Record<string, string> }>;
+  /** From `confidence = ...`. When missing, the engine uses DEFAULT_CONFIDENCE. */
+  confidence?: number;
   checks: Record<string, CheckDef>;
   /** Every `ask` id and its texts, collected from the tree. */
   asks: Record<string, string[]>;

@@ -14,9 +14,8 @@ field source = [classifier, fallback]
 field topic = [greeting, orders, returns, off_topic, other]
 field action = [track_order, return_item, other]
 
-# How sure the classifier must be.
-let sure = 0.8
-let very_sure = 0.9
+# The classifier must be at least this sure, unless a rule says otherwise.
+confidence = 80%
 
 # An order number has at least 4 digits.
 check order_number = /\d{4,}/
@@ -38,17 +37,17 @@ let order_number_question = [
 
 flow main
   classifier-down: when source == fallback -> model
-  hello: when topic == greeting >= sure -> reply hello_messages
-  off-topic: when topic == off_topic >= very_sure -> refuse off_topic_messages
+  hello: when topic == greeting -> reply hello_messages
+  off-topic: when topic == off_topic >= 90% -> refuse off_topic_messages
   shop: when topic == [orders, returns] -> shop
   open: else -> model
 
 flow shop
-  track: when action == track_order >= sure
+  track: when action == track_order
     has-number: when has order_number -> direct track_order
     answer: when asked order_number_question -> model
     ask-number: else -> ask order_number_question
-  return: when action == return_item >= sure
+  return: when action == return_item
     has-number: when has order_number -> model
     answer: when asked order_number_question -> model
     ask-number: else -> ask order_number_question
@@ -102,7 +101,7 @@ Press **Try it Yourself** under the example, then:
 <details>
 <summary>Test yourself: the classifier is only 70% sure a message is a greeting. What happens?</summary>
 
-`hello` needs at least 0.8, so it's skipped. `off-topic` and `shop` don't fit either, so `open: else` sends it to the
+`hello` needs at least 80% (the `confidence` at the top), so it's skipped. `off-topic` and `shop` don't fit either, so `open: else` sends it to the
 big AI.
 
 </details>

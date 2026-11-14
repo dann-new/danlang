@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { check, createEngine, linkSources, parse, resolvePath } from "../index";
+import { DEFAULT_CONFIDENCE, check, createEngine, linkSources, parse, resolvePath } from "../index";
 
 const HEAD = "field intent = [greet, bills, other]\n";
 const run = (src: string) => linkSources({ "main.dan": HEAD + src });
@@ -91,10 +91,10 @@ describe("linking and engine", () => {
     expect(e.decide({ text: "", facts: { intent: "other" } })).toMatchObject({ kind: "model", path: "no-match" });
   });
 
-  test("missing confidence counts as 0", () => {
+  test("a fact with no confidence counts as certain", () => {
     const e = createEngine(run("flow main\n  a: when intent == greet >= 0.5 -> reply \"hi\"\n  b: else -> model"));
-    expect(e.decide({ text: "", facts: { intent: "greet" } }).kind).toBe("model");
-    expect(e.decide({ text: "", facts: { intent: "greet" }, confidence: { intent: 0.6 } }).kind).toBe("reply");
+    expect(e.decide({ text: "", facts: { intent: "greet" } }).kind).toBe("reply");
+    expect(e.decide({ text: "", facts: { intent: "greet" }, confidence: { intent: 0.4 } }).kind).toBe("model");
   });
 });
 
@@ -134,5 +134,52 @@ describe("messages in let", () => {
     expect(() => parse("flow main\n  x: when intent is greet -> model")).toThrow(/Use "==" to compare/);
     expect(() => parse("flow main\n  x: when intent = greet -> model")).toThrow(/Use "==" to compare/);
     expect(() => parse('let m = [\n  "a",\n')).toThrow(/never closed/);
+  });
+});
+
+describe("confidence", () => {
+  const sure = (src: string, c: number) =>
+    createEngine(run(src)).decide({ text: "", facts: { intent: "greet" }, confidence: { intent: c } }).kind;
+  const RULES = 'flow main\n  a: when intent == greet -> reply "hi"\n  b: else -> model';
+
+  test("with nothing set, every == test needs the default (80%)", () => {
+    expect(DEFAULT_CONFIDENCE).toBe(0.8);
+    expect(sure(RULES, 0.8)).toBe("reply");
+    expect(sure(RULES, 0.79)).toBe("model");
+  });
+
+  test("confidence = ... sets it for the whole program, in % or as a number", () => {
+    expect(sure("confidence = 60%\n" + RULES, 0.6)).toBe("reply");
+    expect(sure("confidence = 0.95\n" + RULES, 0.9)).toBe("model");
+  });
+
+  test("a rule's own >= wins over the global value", () => {
+    const src = 'confidence = 90%\nflow main\n  a: when intent == greet >= 50% -> reply "hi"\n  b: else -> model';
+    expect(sure(src, 0.55)).toBe("reply");
+  });
+
+  test("mistakes", () => {
+    expect(errors("confidence = 150%\nflow main\n  b: else -> model")[0]).toMatch(/between 0% and 100%/);
+    expect(() => linkSources({ "main.dan": 'use "./b.dan"\nconfidence = 0.8\nflow main\n  x: else -> model', "b.dan": "confidence = 0.7" })).toThrow(/more than one file/);
+    expect(() => parse("confidence = high")).toThrow(/confidence = 80%/);
+  });
+});
+
+describe("field descriptions (for the classifier)", () => {
+  test("values can carry a description, and the field a question, over several lines", () => {
+    const p = linkSources({
+      "main.dan": [
+        'field topic "Which topic fits the message?" = [',
+        '  greeting "The person says hello.",',
+        "  other,",
+        "]",
+        "flow main",
+        '  a: when topic == greeting -> reply "hi"',
+        "  b: else -> model",
+      ].join("\n"),
+    });
+    expect(p.fields.topic).toEqual(["greeting", "other"]);
+    expect(p.fieldInfo.topic).toEqual({ question: "Which topic fits the message?", describe: { greeting: "The person says hello." } });
+    expect(check(p)).toEqual([]);
   });
 });

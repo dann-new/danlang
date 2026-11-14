@@ -12,12 +12,12 @@ let order_number_question = [
 ]
 
 flow shop
-  track: when action == track_order >= sure
+  track: when action == track_order
     lookup: when has order_number and has orders_online -> direct track_order
     has-number: when has order_number -> model
     answer: when asked order_number_question -> model
     ask-number: else -> ask order_number_question
-  return: when action == return_item >= sure
+  return: when action == return_item
     has-number: when has order_number -> model
     answer: when asked order_number_question -> model
     ask-number: else -> ask order_number_question
