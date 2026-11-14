@@ -36,9 +36,9 @@ When messages are long, put each one on its own line. This is much easier to rea
 
 ```dan
 let sorry_messages = [
-  "Sorry, I can only help with your business.",
-  "That's outside what I do, but ask me about invoices or taxes!",
-  "I'm your business assistant, so I can't help with that one.",
+  "Sorry, I can only help with your orders.",
+  "That's outside what I do, but ask me about orders or returns!",
+  "I'm the shop assistant, so I can't help with that one.",
 ]
 
 flow main
@@ -52,7 +52,7 @@ A comma after the last message is fine. danlang doesn't mind.
 If your message itself has double quotes in it, put a backslash `\` before each one:
 
 ```dan
-let tips = ["Try asking: \"How much tax do I owe?\""]
+let tips = ["Try asking: \"Where is my order?\""]
 
 flow main
   open: else -> reply tips

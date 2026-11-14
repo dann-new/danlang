@@ -33,11 +33,11 @@ const engine = createEngine(program, {
   checks: { is_business_hours: () => new Date().getHours() < 17 },
 });
 
-// 4. For each message: get the facts (from Jev or your own rules), then decide.
+// 4. For each message: get the facts (from your classifier or your own rules), then decide.
 const decision = engine.decide({
-  text: "log expense for meralco",
-  facts: { intent: "business_qa", action: "log_expense", source: "jev" },
-  confidence: { intent: 0.95, action: 0.92 },
+  text: "where is my order?",
+  facts: { topic: "orders", action: "track_order" },
+  confidence: { topic: 0.95, action: 0.92 },
   lastReply: previousBotMessage, // for `asked`
 });
 ```
@@ -52,7 +52,7 @@ switch (decision.kind) {
   case "ask":    /* send decision.text; decision.ask is the list's name */ break;
   case "direct": /* run your handler named decision.name */ break;
 }
-decision.path;  // e.g. "money/expense/ask-amount" (great for logs)
+decision.path;  // e.g. "returns/return/ask-number" (great for logs)
 decision.trace; // every rule tested, in order, and whether it fit
 ```
 

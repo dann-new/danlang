@@ -228,13 +228,13 @@ function parseLeaf(c: Cursor): Leaf {
     case "refuse":
       return { kind: "refuse", ...parseMessages(c) };
     case "ask": {
-      // `ask expense_messages` (a let), `ask expense_amount "How much?"` (an id + messages), or just `ask "How much?"`.
+      // `ask order_question` (a let), `ask order_number "Which order?"` (an id + messages), or just `ask "How much?"`.
       const first = c.peek();
       if (first?.t === "str" || c.isOp("[")) {
         const texts = parseTexts(c);
         return { kind: "ask", id: `"${texts[0]}"`, texts };
       }
-      const id = c.ident("a message list after `ask`, like `ask expense_messages`");
+      const id = c.ident("a message list after `ask`, like `ask order_question`");
       if (c.done()) return { kind: "ask", id, texts: [], from: id };
       return { kind: "ask", id, ...parseMessages(c) };
     }
@@ -316,7 +316,7 @@ export function parse(text: string, file = "main.dan"): FileAst {
       const pos = at(1);
       if (kw === "use") {
         const s = c.peek();
-        if (s?.t !== "str") throw new DanError('Expected a file in quotes, like use "./bills.dan".', c.here());
+        if (s?.t !== "str") throw new DanError('Expected a file in quotes, like use "./orders.dan".', c.here());
         c.i++;
         c.end();
         ast.uses.push({ path: s.v, pos });
@@ -385,7 +385,7 @@ export function parse(text: string, file = "main.dan"): FileAst {
       );
 
     const idm = BRANCH_ID.exec(body);
-    if (!idm) throw new DanError("A branch starts with its name and a colon, like `tax-due: when ...`.", at(indent + 1));
+    if (!idm) throw new DanError("A branch starts with its name and a colon, like `track: when ...`.", at(indent + 1));
     const id = idm[1]!;
     const restOffset = indent + idm[0].length;
     const c = new Cursor(tokenize(body.slice(idm[0].length), restOffset, at), at, code.length + 1);

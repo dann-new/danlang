@@ -12,7 +12,7 @@ export type Cond =
   | { kind: "is"; field: string; values: string[]; min?: number | string; pos: Pos }
   /** `has amount`: a `check` on the message text (a regex, or code the host app provides). */
   | { kind: "has"; check: string; pos: Pos }
-  /** `asked expense_amount`: Juan's previous reply was this `ask`. Stops asking the same question twice. */
+  /** `asked order_number_question`: the bot's previous reply was this `ask`. Stops asking the same question twice. */
   | { kind: "asked"; ask: string; pos: Pos }
   | { kind: "not"; cond: Cond }
   | { kind: "and" | "or"; left: Cond; right: Cond };
@@ -30,7 +30,7 @@ export type Leaf =
   | { kind: "reply"; texts: string[]; from?: string }
   /** Ask for a missing detail. `id` lets `asked <id>` notice the answer on the next turn. */
   | { kind: "ask"; id: string; texts: string[]; from?: string }
-  /** The host app answers with its own code (e.g. the tax engine). No LLM. */
+  /** The host app answers with its own code (e.g. an order lookup). No LLM. */
   | { kind: "direct"; name: string }
   /** Continue inside another flow (its branches become this branch's children). */
   | { kind: "flow"; flow: string };

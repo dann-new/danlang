@@ -1,0 +1,24 @@
+# Orders and returns.
+
+# An order number has at least 4 digits.
+check order_number = /\d{4,}/
+
+# Is the shop's order system online? The app checks this in its own code.
+check orders_online = host
+
+let order_number_question = [
+  "Sure! What's your order number? It's in your confirmation email.",
+  "Happy to help! Which order is it? The number starts with #.",
+]
+
+flow shop
+  track: when action == track_order >= sure
+    lookup: when has order_number and has orders_online -> direct track_order
+    has-number: when has order_number -> model
+    answer: when asked order_number_question -> model
+    ask-number: else -> ask order_number_question
+  return: when action == return_item >= sure
+    has-number: when has order_number -> model
+    answer: when asked order_number_question -> model
+    ask-number: else -> ask order_number_question
+  open: else -> model

@@ -15,8 +15,8 @@ field meal = [breakfast, lunch, dinner]
 
 flow main
   food: when topic == food
-    morning: when meal == breakfast -> reply "Coffee and pandesal!"
-    noon: when meal == lunch -> reply "Adobo sounds good."
+    morning: when meal == breakfast -> reply "Coffee and toast!"
+    noon: when meal == lunch -> reply "A sandwich sounds good."
     open: else -> reply "Let's find something tasty."
   open: else -> model
 ```
@@ -36,8 +36,8 @@ The file above is really a tree:
 ```text
 main
 ├─ food ─────────── topic == food?
-│  ├─ morning ───── breakfast → "Coffee and pandesal!"
-│  ├─ noon ──────── lunch → "Adobo sounds good."
+│  ├─ morning ───── breakfast → "Coffee and toast!"
+│  ├─ noon ──────── lunch → "A sandwich sounds good."
 │  └─ open ──────── anything else → "Let's find something tasty."
 └─ open ─────────── anything else → AI
 ```

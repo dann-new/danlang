@@ -15,9 +15,9 @@ new employee following a checklist.
 Think of a **receptionist** at a busy office. People walk in with all kinds of questions. The receptionist has a
 sheet of paper on the desk:
 
-- If someone asks *"How much tax do I owe?"* → open the tax folder and read the answer.
+- If someone asks *"Where is my order?"* → look up the order and say where it is.
 - If someone wants to *book a meeting* but did not say when → ask *"What day and time?"*
-- If someone asks *"What's the capital of France?"* → politely say *"Sorry, I only help with business."*
+- If someone asks *"What's the capital of France?"* → politely say *"Sorry, I only help with your orders."*
 - **Anything else** → call the expert (the expensive one).
 
 That sheet of paper is your `.dan` file. The **expert** is a big AI like Gemini or ChatGPT. The receptionist only
@@ -58,8 +58,11 @@ Press **Try it Yourself** under the example to play with it.
 
 ## Who decides what a message is "about"?
 
-Before danlang runs, a small, cheap helper looks at the message and guesses what it is about. In JuanStack this
-helper is called **Jev**. Jev says things like *"this message is a greeting, and I'm 95% sure."*
+Before danlang runs, a small, cheap helper AI looks at the message and guesses what it is about. We call this
+helper the **classifier**. It says things like *"this message is a greeting, and I'm 95% sure."*
+
+You can use any classifier you like: a small AI model, a service you pay for, or even simple keyword rules.
+danlang doesn't care where the guess comes from.
 
 danlang then uses that guess to pick the right rule. You'll learn how in the next lessons.
 
@@ -69,16 +72,16 @@ danlang then uses that guess to pick the right rule. You'll learn how in the nex
 |---|---|
 | Your first flow | write rules that run from top to bottom |
 | Messages | give the bot many ways to say the same thing |
-| Fields | use what Jev tells you about a message |
-| How sure? | only follow a rule when Jev is sure enough |
+| Fields | use what the classifier tells you about a message |
+| How sure? | only follow a rule when the classifier is sure enough |
 | And, or, not | combine rules |
 | Rules inside rules | make a tree of decisions |
 | Asking questions | ask for missing details, without asking twice |
-| Checks | look for words or amounts in the message |
+| Checks | look for words or numbers in the message |
 | Actions | everything a rule can do |
 | Many files | split a big bot into smaller files |
 | Fixing mistakes | understand danlang's error messages |
-| A real example | read JuanStack's real chatbot file |
+| A complete example | read a whole chatbot for an online shop |
 
 <details>
 <summary>Test yourself: in the receptionist picture, who is the "expert"?</summary>

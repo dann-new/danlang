@@ -2,13 +2,13 @@ import Link from "next/link";
 import { highlightDan, encodeCode } from "@/lib/highlight";
 import { listLessons } from "@/lib/lessons";
 
-const SAMPLE = `field topic = [greeting, taxes, other]
+const SAMPLE = `field topic = [greeting, orders, other]
 
 let hello_messages = ["Hi there!", "Hello! How can I help?", "Hey! 👋"]
 
 flow main
   say-hi: when topic == greeting -> reply hello_messages
-  tax: when topic == taxes >= 0.8 -> direct tax_summary
+  order: when topic == orders >= 0.8 -> direct order_status
   open: else -> model`;
 
 export default function Home() {

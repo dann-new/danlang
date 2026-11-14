@@ -13,7 +13,7 @@ The part after `->` is the **action**: what the bot does when the rule fits. The
 | `reply messages` | Send one of your messages. | No (free) |
 | `refuse messages` | Politely say "I can't help with that". | No (free) |
 | `ask messages` | Ask for a missing detail (see **Asking questions**). | No (free) |
-| `direct name` | Your app answers with its own code, like a tax calculator. | No (free) |
+| `direct name` | Your app answers with its own code, like an order tracker. | No (free) |
 | `flow-name` | Continue inside another flow. | Depends |
 
 ## `model`
@@ -23,7 +23,7 @@ open: else -> model
 ```
 
 Use it for anything the bot can't answer with a fixed message: open questions, messages that need thinking, or when
-Jev isn't sure.
+the classifier isn't sure.
 
 ## `reply` and `refuse`
 
@@ -34,7 +34,7 @@ count those or show them differently.
 field topic = [greeting, off_topic, other]
 
 let hellos = ["Hi!", "Hello there!"]
-let sorry = ["Sorry, I only help with business questions."]
+let sorry = ["Sorry, I only help with shopping questions."]
 
 flow main
   hi: when topic == greeting -> reply hellos
@@ -44,14 +44,14 @@ flow main
 
 ## `direct`
 
-Some answers need real data: *"How much tax do I owe?"*. A fixed message can't know that, but your app can work it
+Some answers need real data: *"Where is my order?"*. A fixed message can't know that, but your app can work it
 out with its own code, for free.
 
 ```text
-tax: when topic == taxes >= sure -> direct tax_summary
+order: when topic == orders >= sure -> direct order_status
 ```
 
-danlang tells your app "do `tax_summary`", and the app's code does the work. The name is up to you and your developer.
+danlang tells your app "do `order_status`", and the app's code does the work. The name is up to you and your developer.
 
 ## Jumping to another flow
 
@@ -66,7 +66,7 @@ flow main
   open: else -> model
 
 flow food_rules
-  morning: when meal == breakfast -> reply "Coffee and pandesal!"
+  morning: when meal == breakfast -> reply "Coffee and toast!"
   open: else -> reply "Let's find something tasty."
 ```
 

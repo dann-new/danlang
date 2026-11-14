@@ -2,19 +2,19 @@
 
 /**
  * The "Try it Yourself" page. Runs the real @danlang/core in the browser: no server, no AI calls.
- * The visitor plays the part of Jev by picking each field's answer and how sure it is.
+ * The visitor plays the part of the classifier by picking each field's answer and how sure it is.
  */
 import { check, createEngine, linkSources, type Decision, type Diagnostic, type Program } from "@danlang/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { decodeCode, highlightDan } from "@/lib/highlight";
 
-const DEFAULT = `field topic = [greeting, taxes, other]
+const DEFAULT = `field topic = [greeting, orders, other]
 
 let hello_messages = ["Hi there!", "Hello! How can I help?", "Hey! 👋"]
 
 flow main
   say-hi: when topic == greeting -> reply hello_messages
-  tax: when topic == taxes >= 0.8 -> direct tax_summary
+  order: when topic == orders >= 0.8 -> direct order_status
   open: else -> model
 `;
 
@@ -159,7 +159,7 @@ export function Playground() {
 
         {Object.keys(fields).length > 0 && (
           <>
-            <p className="hint">You are Jev: pick what the message is about, and how sure you are.</p>
+            <p className="hint">You are the classifier: pick what the message is about, and how sure you are.</p>
             {Object.entries(fields).map(([name, values]) => (
               <div className="field-row" key={name}>
                 <div className="field">

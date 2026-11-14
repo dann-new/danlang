@@ -1,38 +1,38 @@
 # danlang
 
 A small language for **chat routing**: write how an AI assistant decides what to do with a message in plain,
-readable `.dan` files. Cheap answers first (rules, a classifier like Jev), the expensive LLM only when needed.
+readable `.dan` files. Cheap answers first (a small classifier or simple rules), the expensive LLM only when needed.
 
 **Learn it:** run `pnpm dev:docs` and open http://localhost:3100 (lessons with Try it examples), or read `docs/lessons/`.
 
-Status: **v0, step 1** (parser, checker, engine). Next: CLI (`dan check`, `dan test`), providers (OpenRouter/Jev,
-Gemini, ...), the localhost Studio, and SKILL.md / AGENTS.md for AI assistants.
+Status: **v0, step 1** (parser, checker, engine). Next: CLI (`dan check`, `dan test`), providers (classifier and LLM
+adapters), the localhost Studio, and SKILL.md / AGENTS.md for AI assistants.
 
 ## Example
 
 ```dan
-field intent = [bir_forms, business_qa, out_of_scope]
-field action = [tax_due, log_expense, other]
+field topic = [greeting, orders, off_topic, other]
+field action = [track_order, other]
 let sure = 0.8
 
-check amount = /₱|\d[\d,]*/i
+check order_number = /\d{4,}/
 
-let expense_question = [
-  "Sure! How much was it?",
-  "Got it! How much did you spend?",
+let order_number_question = [
+  "Sure! What's your order number?",
+  "Happy to help! Which order is it?",
 ]
 
 flow main
-  off-topic: when intent == out_of_scope >= 0.9 -> refuse "I can only help with your business."
-  money: when intent == [bir_forms, business_qa] -> bills
+  hello: when topic == greeting >= sure -> reply ["Hi!", "Hello! How can I help?"]
+  off-topic: when topic == off_topic >= 0.9 -> refuse "Sorry, I can only help with orders."
+  orders: when topic == orders -> orders
   open: else -> model
 
-flow bills
-  tax-due: when action == tax_due >= sure -> direct tax_due
-  expense: when action == log_expense >= sure
-    has-amount: when has amount -> model
-    answer: when asked expense_question -> model
-    ask-amount: else -> ask expense_question
+flow orders
+  track: when action == track_order >= sure
+    has-number: when has order_number -> direct track_order
+    answer: when asked order_number_question -> model
+    ask-number: else -> ask order_number_question
   open: else -> model
 ```
 
@@ -65,16 +65,16 @@ Actions: `model` (LLM), `reply "text"`, `refuse "text"`, `ask id "text"` (texts 
 import { readFileSync } from "node:fs";
 import { link, check, createEngine } from "@danlang/core";
 
-const program = link("flows/main.dan", (p) => readFileSync(p, "utf8"));
+const program = link("bot/main.dan", (p) => readFileSync(p, "utf8"));
 const problems = check(program); // errors and warnings, each with file:line:col and how to fix it
-const engine = createEngine(program, { checks: { plain_range: (turn) => /* app code */ true } });
+const engine = createEngine(program, { checks: { orders_online: () => true } });
 
 const d = engine.decide({
-  text: "log expense for meralco",
-  facts: { intent: "business_qa", action: "log_expense", source: "jev" },
-  confidence: { intent: 0.95, action: 0.92 },
+  text: "where is my order?",
+  facts: { topic: "orders", action: "track_order" },
+  confidence: { topic: 0.95, action: 0.92 },
 });
-// d = { kind: "ask", ask: "expense_amount", text: "...", path: "bir-money/expense/ask-amount", trace: [...] }
+// d = { kind: "ask", ask: "order_number_question", text: "...", path: "orders/track/ask-number", trace: [...] }
 ```
 
 `@danlang/core` is pure TypeScript with no Node, browser or network code, so it runs in Next.js routes, edge
@@ -86,4 +86,4 @@ functions, browsers and React Native. No extra server.
 - `docs/lessons`: 14 beginner lessons (the website shows these; every example is tested).
 - `apps/docs`: the Next.js website (private, never published).
 - `packages/vscode`: editor colors (`pnpm vscode:install`).
-- `examples/juanstack`: JuanStack's chat tree ported to danlang; its tests prove it decides exactly like the original.
+- `examples/shop`: a two-file shop assistant, tested end to end.

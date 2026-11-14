@@ -16,24 +16,24 @@ Sometimes one test isn't enough. You can join tests with three small words.
 ## `and`: both must be true
 
 ```dan
-field topic = [taxes, other]
+field topic = [orders, other]
 field mood = [happy, angry]
 
 flow main
-  angry-tax: when topic == taxes and mood == angry -> reply "Taxes are stressful. Let's sort it out together."
+  angry-order: when topic == orders and mood == angry -> reply "Sorry about your order. Let's sort it out together."
   open: else -> model
 ```
 
-Only a message that is about taxes **and** angry gets this reply.
+Only a message that is about orders **and** angry gets this reply.
 
 ## `or`: one is enough
 
 ```dan
-field topic = [taxes, invoices, other]
+field topic = [orders, returns, other]
 field mood = [happy, angry]
 
 flow main
-  careful: when topic == taxes or mood == angry -> model
+  careful: when topic == orders or mood == angry -> model
   open: else -> reply "Happy to help!"
 ```
 
@@ -52,17 +52,17 @@ flow main
 When you mix `and` with `or`, use round brackets `( )` to make your meaning clear, just like in math:
 
 ```text
-when topic == taxes and (mood == angry or mood == neutral)
+when topic == orders and (mood == angry or mood == neutral)
 ```
 
 Without brackets, `and` is done first. Brackets make it easy for the next person to read, so use them whenever you
 mix the two.
 
 <details>
-<summary>Test yourself: write a test for "the topic is taxes but the mood is not happy".</summary>
+<summary>Test yourself: write a test for "the topic is orders but the mood is not happy".</summary>
 
 ```text
-when topic == taxes and not mood == happy
+when topic == orders and not mood == happy
 ```
 
 </details>

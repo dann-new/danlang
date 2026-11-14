@@ -1,6 +1,6 @@
 /**
  * Runs a program on one chat turn. Pure and synchronous: no network, no clock. The host app first gets the facts
- * (rules, then Jev or another classifier), then asks the engine which branch wins. The engine never calls an LLM;
+ * (simple rules, a small classifier model, or both), then asks the engine which branch wins. The engine never calls an LLM;
  * it answers `{ kind: "model" }` and the host does.
  */
 import type { Branch, Cond, Leaf, Program } from "./ast";
@@ -10,7 +10,7 @@ import { formatDiagnostic } from "./errors";
 /** What the engine knows about one message. */
 export type Turn = {
   text: string;
-  /** Classifier answers, e.g. { intent: "bir_forms", action: "tax_due", source: "jev" }. */
+  /** Classifier answers, e.g. { topic: "orders", action: "track_order" }. */
   facts: Record<string, string | undefined>;
   /** How sure the classifier is about each fact, 0..1. Missing counts as 0 for `>=` tests. */
   confidence?: Record<string, number | undefined>;

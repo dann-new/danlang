@@ -70,7 +70,7 @@ function fillMessages(p: Program, branches: Branch[]) {
   }
 }
 
-/** Links a program from in-memory sources, e.g. `{ "main.dan": "...", "bills.dan": "..." }`. Handy for tests and the Studio. */
+/** Links a program from in-memory sources, e.g. `{ "main.dan": "...", "orders.dan": "..." }`. Handy for tests and the Studio. */
 export function linkSources(sources: Record<string, string>, entryFile = "main.dan", entryFlow = "main"): Program {
   return link(
     entryFile,

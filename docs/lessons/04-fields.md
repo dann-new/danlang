@@ -1,28 +1,28 @@
 ---
 title: Fields
-summary: Fields are the facts Jev tells you about a message, like its topic.
+summary: Fields are the facts the classifier tells you about a message, like its topic.
 ---
 
 # Fields
 
-Before danlang runs, a small helper (like **Jev**) reads the message and tells you some facts about it. For example:
+Before danlang runs, a small helper AI (the **classifier**) reads the message and tells you some facts about it. For example:
 
-> "This message is about **taxes**, and the person wants to **know how much they owe**."
+> "This message is about **orders**, and the person wants to **know where theirs is**."
 
 Each fact is called a **field**. You tell danlang which fields exist and what answers they can have.
 
 ## Declaring a field
 
 ```text
-field topic = [taxes, schedule, other]
+field topic = [orders, returns, other]
 ```
 
-This says: *there's a fact called `topic`, and its answer is always one of `taxes`, `schedule` or `other`.*
+This says: *there's a fact called `topic`, and its answer is always one of `orders`, `returns` or `other`.*
 
 You can have as many fields as you need:
 
 ```text
-field topic = [taxes, schedule, other]
+field topic = [orders, returns, other]
 field mood = [happy, angry, neutral]
 ```
 
@@ -59,14 +59,14 @@ One `=` **gives** a value. Two `==` **ask** about a value. If you mix them up, d
 To match **any of several** answers, put them in a list:
 
 ```dan
-field topic = [taxes, invoices, schedule, weather]
+field topic = [orders, returns, shipping, weather]
 
 flow main
-  money: when topic == [taxes, invoices] -> reply "Let's talk money!"
+  shopping: when topic == [orders, returns] -> reply "Let's sort out your purchase!"
   open: else -> model
 ```
 
-`topic == [taxes, invoices]` means *"the topic is taxes **or** invoices"*.
+`topic == [orders, returns]` means *"the topic is orders **or** returns"*.
 
 ## Why declare fields at all?
 
@@ -80,10 +80,11 @@ Without this, the rule would silently never work, and you'd spend an hour wonder
 
 ## Where do the answers come from?
 
-From your app. In JuanStack, Jev answers `intent`, `action` and `source`. In your own project, you decide which
-fields exist, as long as your helper (Jev, simple rules, or anything else) can answer them.
+From your classifier. You decide which fields exist, as long as your classifier (a small AI model, simple keyword
+rules, or anything else) can answer them. A common setup is two fields: `topic` (what it's about) and `action` (what
+the person wants done).
 
-In the **Try it** page, you play the part of Jev: you pick the answers from the dropdowns.
+In the **Try it** page, you play the part of the classifier: you pick the answers from the dropdowns.
 
 <details>
 <summary>Test yourself: write a rule that replies "Hello!" when <code>topic</code> is <code>greeting</code>.</summary>

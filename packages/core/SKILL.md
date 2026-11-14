@@ -5,34 +5,34 @@ description: Read, write, edit and debug danlang (.dan) chat-routing files, and 
 
 # danlang
 
-danlang decides what a chatbot does with each message. A classifier (e.g. Jev) answers **fields** about the
+danlang decides what a chatbot does with each message. A classifier (any small model or rule set) answers **fields** about the
 message with a confidence; a `.dan` file is a tree of rules; the engine walks it from `flow main`, top to bottom,
 and takes the **first** rule that fits. Only the `model` action calls the LLM; every other action is free.
 
 ## Syntax (complete)
 
 ```dan
-field intent = [greeting, taxes, other]    # a fact the classifier answers + every allowed value
+field intent = [greeting, orders, other]    # a fact the classifier answers + every allowed value
 let sure = 0.8                             # a named number
 let hello = ["Hi!", "Hello!"]              # named messages (one picked at random); may span lines:
 let sorry = [
-  "Sorry, I only help with business.",
+  "Sorry, I only help with your orders.",
   "That's outside what I do!",
 ]
 # A check is a regex on the message text. Never put a comment on a check line.
-check amount = /\d[\d,]*/i
+check order_number = /\d{4,}/
 # The app supplies this check in code.
 check in_hours = host
 
 flow main                                  # every program starts at flow main
   hi: when intent == greeting -> reply hello
-  tax: when intent == taxes >= sure        # no "->": the rules under it decide
-    has-num: when has amount -> direct tax_summary
-    ask-num: else -> ask amount_question
+  order: when intent == orders >= sure        # no "->": the rules under it decide
+    has-num: when has order_number -> direct order_status
+    ask-num: else -> ask order_number_question
   no: when intent == other >= 0.9 -> refuse sorry
   open: else -> model                      # always end each level with else
 
-let amount_question = ["How much was it?", "What was the amount?"]
+let order_number_question = ["What's your order number?", "Which order is it?"]
 ```
 
 Other files: `use "./other.dan"` at the top (path relative to the file). Names (flows, lets, checks) are global
@@ -66,16 +66,16 @@ Names: letters, digits, `_`, `-`; unique within one level. Indent with spaces (2
 Missing-detail pattern (use for every "do something" action):
 
 ```dan
-field action = [log_expense, other]
+field action = [return_item, other]
 let sure = 0.8
-check amount = /\d/
-let expense_question = ["How much was it, and who did you pay?", "How much did you spend?"]
+check order_number = /\d{4,}/
+let order_number_question = ["What's your order number?", "Which order is it? The number is in your email."]
 
 flow main
-  expense: when action == log_expense >= sure
-    has-amount: when has amount -> model
-    answer: when asked expense_question -> model
-    ask-amount: else -> ask expense_question
+  return: when action == return_item >= sure
+    has-number: when has order_number -> model
+    answer: when asked order_number_question -> model
+    ask-number: else -> ask order_number_question
   open: else -> model
 ```
 
@@ -107,10 +107,10 @@ Common fixes: `Unknown field` → declare `field`; `not a value of field` → us
 import { link, createEngine } from "@danlang/core";
 const engine = createEngine(link("bot/main.dan", load), { checks: { in_hours: (turn) => true } });
 const d = engine.decide({
-  text, facts: { intent: "taxes" }, confidence: { intent: 0.93 }, lastReply,
+  text, facts: { intent: "orders" }, confidence: { intent: 0.93 }, lastReply,
 });
 // d.kind: "model" | "reply" | "refuse" | "ask" | "direct"; d.text (reply/refuse/ask); d.name (direct);
-// d.path e.g. "tax/has-num"; d.trace = every rule tested.
+// d.path e.g. "order/has-num"; d.trace = every rule tested.
 ```
 
 `@danlang/core` is pure TypeScript (no Node/DOM/network): Next.js routes, edge functions, browsers, React Native.

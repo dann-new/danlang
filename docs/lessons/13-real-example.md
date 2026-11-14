@@ -1,85 +1,108 @@
 ---
-title: A real example
-summary: Read JuanStack's real chatbot, step by step.
+title: A complete example
+summary: Read a whole chatbot for an online shop, step by step.
 ---
 
-# A real example: Juan
+# A complete example: a shop assistant
 
-**Juan** is the AI assistant inside JuanStack, an app for Filipino businesses. Here's a shortened version of
-Juan's real danlang file. You now know every word in it.
+Let's read a whole chatbot from top to bottom. It helps customers of a small **online shop**. It's made up for this
+lesson, but it uses every idea you've learned, and you now know every word in it.
 
 ```dan
-# What Jev can tell us about a message.
-field source = [rules, jev, fallback]
-field intent = [bir_forms, schedule_task, business_qa, out_of_scope]
-field action = [tax_due, log_expense, schedule_read, other]
+# What the classifier tells us about each message.
+field source = [classifier, fallback]
+field topic = [greeting, orders, returns, off_topic, other]
+field action = [track_order, return_item, other]
 
-# How sure Jev must be.
+# How sure the classifier must be.
 let sure = 0.8
 let very_sure = 0.9
 
-check amount = /(₱|php)\s?\d|\d[\d,]*\s?(pesos?|php)?/i
+# An order number has at least 4 digits.
+check order_number = /\d{4,}/
 
-let off_topic_messages = [
-  "I can only help with your business: your schedule, Books, money and BIR forms.",
-  "Sorry, that's outside what I do! Ask me about taxes, invoices or your schedule.",
+let hello_messages = [
+  "Hi! How can I help with your order today?",
+  "Hello! Ask me about an order or a return.",
 ]
 
-let expense_question = [
-  "Sure! How much was it, and who did you pay?",
-  "Got it! How much did you spend, and on what?",
+let off_topic_messages = [
+  "Sorry, I can only help with orders and returns.",
+  "That's outside what I do! Ask me about an order or a return.",
+]
+
+let order_number_question = [
+  "Sure! What's your order number? It's in your confirmation email.",
+  "Happy to help! Which order is it? The number starts with #.",
 ]
 
 flow main
-  jev-down: when source == fallback -> model
-  off-topic: when intent == out_of_scope >= very_sure and action == other -> refuse off_topic_messages
-  money: when intent == [bir_forms, business_qa] -> bills
+  classifier-down: when source == fallback -> model
+  hello: when topic == greeting >= sure -> reply hello_messages
+  off-topic: when topic == off_topic >= very_sure -> refuse off_topic_messages
+  shop: when topic == [orders, returns] -> shop
   open: else -> model
 
-flow bills
-  tax-due: when action == tax_due >= sure -> direct tax_due
-  expense: when action == log_expense >= sure
-    has-amount: when has amount -> model
-    answer: when asked expense_question -> model
-    ask-amount: else -> ask expense_question
+flow shop
+  track: when action == track_order >= sure
+    has-number: when has order_number -> direct track_order
+    answer: when asked order_number_question -> model
+    ask-number: else -> ask order_number_question
+  return: when action == return_item >= sure
+    has-number: when has order_number -> model
+    answer: when asked order_number_question -> model
+    ask-number: else -> ask order_number_question
   open: else -> model
 ```
 
 ## Reading it line by line
 
-**The fields.** Jev tells Juan three things: where the answer came from (`source`), the general topic (`intent`) and
-the exact request (`action`).
+**The fields.** The classifier tells the bot three things: whether the classifier worked (`source`), what the
+message is about (`topic`), and what the customer wants done (`action`).
 
-**`jev-down`.** If Jev is broken or too slow, `source` is `fallback`. Juan plays it safe and lets the AI answer
-everything. This rule is first on purpose.
+**`classifier-down`.** If the classifier is broken or too slow, your app sets `source` to `fallback`. The bot plays
+it safe and lets the big AI answer everything. This rule is first on purpose.
 
-**`off-topic`.** If Jev is **very** sure (90%) the message has nothing to do with business, Juan politely refuses,
-for free. Not sure enough? It falls through to the AI, because refusing a real customer by mistake is bad.
+**`hello`.** A greeting gets a friendly reply, picked at random from two. Free.
 
-**`money`.** Anything about BIR forms or business questions jumps to the `bills` flow.
+**`off-topic`.** If the classifier is **very** sure (90%) the message has nothing to do with the shop, the bot
+politely says no, for free. Not sure enough? It falls through to the AI, because turning away a real customer by
+mistake is bad.
 
-**`tax-due`.** *"How much tax do I owe?"* → the app's tax calculator answers (`direct`). No AI, so it's free and
-always correct.
+**`shop`.** Anything about orders or returns jumps to the `shop` flow.
 
-**`expense`.** *"Log an expense"*:
-- has an amount? → the AI prepares the expense card
+**`track`.** *"Where is my order?"*
+- has an order number? → the shop's own system looks it up (`direct track_order`). No AI, so it's free and always
+  correct.
 - answering our question? → the AI reads the answer
-- otherwise → ask *"How much was it?"*, free
+- otherwise → ask for the order number, free
 
-**`open`.** Everything else → the AI.
+**`return`.** *"I want to return something"*: the same pattern. With an order number, the AI helps with the return.
+Without one, the bot asks first.
+
+**`open`.** Everything else → the big AI.
 
 ## The money it saves
 
-Out of every 10 messages, many are greetings, tax questions, schedule checks, or missing-detail questions. Each of
-those is answered without the big AI. Only the hard ones cost money.
+Greetings, off-topic messages, order lookups and "what's your order number?" questions are all answered without
+the big AI. Only the messages that really need thinking cost money.
 
 ## Try these in the Try it page
 
-| Message | intent | action | Result |
-|---|---|---|---|
-| "magkano tax ko?" | bir_forms | tax_due | direct tax_due |
-| "log expense for ink" | business_qa | log_expense | ask (free) |
-| "log ₱500 for ink" | business_qa | log_expense | model |
-| "capital of France?" | out_of_scope (0.95) | other | refuse (free) |
+Press **Try it Yourself** under the example, then:
 
-The full version, with schedules and invoices, is in the danlang repo under `examples/juanstack`.
+| Message | topic | action | Result |
+|---|---|---|---|
+| "hi!" | greeting | other | reply (free) |
+| "where is my order?" | orders | track_order | ask for the number (free) |
+| "where is order 48213?" | orders | track_order | direct track_order (free) |
+| "I want to return order 48213" | returns | return_item | model |
+| "what's the weather?" | off_topic (95% sure) | other | refuse (free) |
+
+<details>
+<summary>Test yourself: the classifier is only 70% sure a message is a greeting. What happens?</summary>
+
+`hello` needs at least 0.8, so it's skipped. `off-topic` and `shop` don't fit either, so `open: else` sends it to the
+big AI.
+
+</details>

@@ -58,10 +58,10 @@ Every flow, `let` and `check` name must be different across **all** files. If tw
 danlang tells you where both are, so you can rename one.
 
 <details>
-<summary>Test yourself: <code>main.dan</code> is in <code>bot/</code>. How does it use <code>bot/topics/tax.dan</code>?</summary>
+<summary>Test yourself: <code>main.dan</code> is in <code>bot/</code>. How does it use <code>bot/topics/returns.dan</code>?</summary>
 
 ```text
-use "./topics/tax.dan"
+use "./topics/returns.dan"
 ```
 
 </details>
