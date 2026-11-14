@@ -40,8 +40,8 @@ stops there and ignores the rest.
 field topic = [greeting, thanks, other]
 
 flow main
-  say-hi: when topic = greeting -> reply "Hi!"
-  say-welcome: when topic = thanks -> reply "You're welcome!"
+  say-hi: when topic == greeting -> reply "Hi!"
+  say-welcome: when topic == thanks -> reply "You're welcome!"
   open: else -> model
 ```
 

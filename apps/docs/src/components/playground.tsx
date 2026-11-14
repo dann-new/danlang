@@ -13,8 +13,8 @@ const DEFAULT = `field topic = [greeting, taxes, other]
 let hello_messages = ["Hi there!", "Hello! How can I help?", "Hey! 👋"]
 
 flow main
-  say-hi: when topic = greeting -> reply hello_messages
-  tax: when topic = taxes >= 0.8 -> direct tax_summary
+  say-hi: when topic == greeting -> reply hello_messages
+  tax: when topic == taxes >= 0.8 -> direct tax_summary
   open: else -> model
 `;
 

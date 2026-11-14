@@ -21,8 +21,8 @@ let off_topic_messages = [
 ]
 
 flow main
-  jev-down: when source = fallback -> model
-  off-topic: when intent = out_of_scope >= very_sure and action = other -> refuse off_topic_messages
-  money: when intent = [bir_forms, business_qa] -> bills
-  schedule: when intent = schedule_task -> schedule
+  jev-down: when source == fallback -> model
+  off-topic: when intent == out_of_scope >= very_sure and action == other -> refuse off_topic_messages
+  money: when intent == [bir_forms, business_qa] -> bills
+  schedule: when intent == schedule_task -> schedule
   open: else -> model

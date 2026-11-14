@@ -10,8 +10,8 @@ describe("parser", () => {
     const ast = parse(
       [
         "flow main",
-        '  hi: when intent = greet -> reply ["Hi!", "Hello!"]   # say hi',
-        "  b: when intent = bills and not (intent = other or intent = greet)",
+        '  hi: when intent == greet -> reply ["Hi!", "Hello!"]   # say hi',
+        "  b: when intent == bills and not (intent == other or intent == greet)",
         "    x: else -> model",
         "  open: else -> model",
       ].join("\n"),
@@ -23,10 +23,10 @@ describe("parser", () => {
   });
 
   test("errors point at the line and column, in plain words", () => {
-    expect(() => parse("flow main\n  hi: when intent -> model")).toThrow(/main\.dan:2:\d+: Expected "=" after "intent"/);
+    expect(() => parse("flow main\n  hi: when intent -> model")).toThrow(/main\.dan:2:\d+: Expected "==" after "intent"/);
     expect(() => parse("flow main\n\thi: else -> model")).toThrow(/tabs/);
     expect(() => parse('flow main\n  hi: else -> reply "oops')).toThrow(/closing quote/);
-    expect(() => parse("flow main\n  a: when intent = x\n      c: else -> model\n    b: else -> model")).toThrow(/does not line up/);
+    expect(() => parse("flow main\n  a: when intent == x\n      c: else -> model\n    b: else -> model")).toThrow(/does not line up/);
     expect(() => parse("  stray: else -> model")).toThrow(/not inside a `flow`/);
     expect(() => parse("nope x")).toThrow(/Unknown statement/);
   });
@@ -39,28 +39,28 @@ describe("parser", () => {
 
 describe("checker", () => {
   test("a clean program", () => {
-    expect(check(run("flow main\n  hi: when intent = greet -> reply \"Hi\"\n  open: else -> model"))).toEqual([]);
+    expect(check(run("flow main\n  hi: when intent == greet -> reply \"Hi\"\n  open: else -> model"))).toEqual([]);
   });
 
   test("typos are caught with a fix in the message", () => {
-    expect(errors("flow main\n  a: when intnet = greet -> model\n  b: else -> model")[0]).toMatch(/Unknown field "intnet"/);
-    expect(errors("flow main\n  a: when intent = gret -> model\n  b: else -> model")[0]).toMatch(/not a value of field intent/);
+    expect(errors("flow main\n  a: when intnet == greet -> model\n  b: else -> model")[0]).toMatch(/Unknown field "intnet"/);
+    expect(errors("flow main\n  a: when intent == gret -> model\n  b: else -> model")[0]).toMatch(/not a value of field intent/);
     expect(errors("flow main\n  a: when has money -> model\n  b: else -> model")[0]).toMatch(/Unknown check "money"/);
     expect(errors("flow main\n  a: when asked q -> model\n  b: else -> model")[0]).toMatch(/Unknown ask "q"/);
-    expect(errors("flow main\n  a: when intent = greet >= sure -> model\n  b: else -> model")[0]).toMatch(/let sure/);
+    expect(errors("flow main\n  a: when intent == greet >= sure -> model\n  b: else -> model")[0]).toMatch(/let sure/);
     expect(errors("flow main\n  a: else -> bils")[0]).toMatch(/"bils" is not a flow/);
   });
 
   test("structure mistakes", () => {
-    expect(errors("flow main\n  a: else -> model\n  b: when intent = greet -> model")[0]).toMatch(/never be reached/);
-    expect(errors("flow main\n  a: when intent = greet\n  b: else -> model")[0]).toMatch(/does nothing/);
-    expect(errors("flow main\n  a: when intent = greet >= 1.5 -> model\n  b: else -> model")[0]).toMatch(/between 0 and 1/);
+    expect(errors("flow main\n  a: else -> model\n  b: when intent == greet -> model")[0]).toMatch(/never be reached/);
+    expect(errors("flow main\n  a: when intent == greet\n  b: else -> model")[0]).toMatch(/does nothing/);
+    expect(errors("flow main\n  a: when intent == greet >= 1.5 -> model\n  b: else -> model")[0]).toMatch(/between 0 and 1/);
     expect(errors("flow main\n  a: else -> other\nflow other\n  b: else -> main")[0]).toMatch(/loop forever/);
     expect(errors("flow start\n  a: else -> model")[0]).toMatch(/no `flow main`/);
   });
 
   test("warnings: missing else, unused flow", () => {
-    const ds = check(run("flow main\n  a: when intent = greet -> model\nflow spare\n  b: else -> model"));
+    const ds = check(run("flow main\n  a: when intent == greet -> model\nflow spare\n  b: else -> model"));
     expect(ds.map((d) => d.severity)).toEqual(["warning", "warning"]);
   });
 });
@@ -69,7 +69,7 @@ describe("linking and engine", () => {
   test("use follows relative paths across folders", () => {
     expect(resolvePath("flows/main.dan", "../shared/bills.dan")).toBe("shared/bills.dan");
     const p = linkSources({
-      "app/main.dan": 'use "./sub/bills.dan"\n' + HEAD + "flow main\n  b: when intent = bills -> bills\n  open: else -> model",
+      "app/main.dan": 'use "./sub/bills.dan"\n' + HEAD + "flow main\n  b: when intent == bills -> bills\n  open: else -> model",
       "app/sub/bills.dan": 'flow bills\n  pay: else -> reply "Paid"',
     }, "app/main.dan");
     const d = createEngine(p, { pick: () => 0 }).decide({ text: "", facts: { intent: "bills" } });
@@ -81,18 +81,18 @@ describe("linking and engine", () => {
   });
 
   test("the engine refuses a program with errors, or a host check without code", () => {
-    expect(() => createEngine(run("flow main\n  a: when intnet = greet -> model"))).toThrow(/has errors/);
+    expect(() => createEngine(run("flow main\n  a: when intnet == greet -> model"))).toThrow(/has errors/);
     expect(() => createEngine(linkSources({ "main.dan": "check r = host\nflow main\n  a: when has r -> model\n  b: else -> model" }))).toThrow(/marked host/);
   });
 
   test("nothing matches: falls to the model with a no-match path", () => {
-    const e = createEngine(run("flow main\n  a: when intent = greet\n    x: when intent = bills -> model\n  b: when intent = bills -> model"));
+    const e = createEngine(run("flow main\n  a: when intent == greet\n    x: when intent == bills -> model\n  b: when intent == bills -> model"));
     expect(e.decide({ text: "", facts: { intent: "greet" } })).toMatchObject({ kind: "model", path: "a/no-match" });
     expect(e.decide({ text: "", facts: { intent: "other" } })).toMatchObject({ kind: "model", path: "no-match" });
   });
 
   test("missing confidence counts as 0", () => {
-    const e = createEngine(run("flow main\n  a: when intent = greet >= 0.5 -> reply \"hi\"\n  b: else -> model"));
+    const e = createEngine(run("flow main\n  a: when intent == greet >= 0.5 -> reply \"hi\"\n  b: else -> model"));
     expect(e.decide({ text: "", facts: { intent: "greet" } }).kind).toBe("model");
     expect(e.decide({ text: "", facts: { intent: "greet" }, confidence: { intent: 0.6 } }).kind).toBe("reply");
   });
@@ -108,8 +108,8 @@ describe("messages in let", () => {
         "]",
         'let one = "Just one"',
         "flow main",
-        "  hi: when intent = greet -> reply hello",
-        "  b: when intent = bills -> ask one",
+        "  hi: when intent == greet -> reply hello",
+        "  b: when intent == bills -> ask one",
         "  open: else -> refuse one",
       ].join("\n"),
     );
@@ -130,8 +130,9 @@ describe("messages in let", () => {
   test("mistakes with message lists", () => {
     expect(errors("flow main\n  x: else -> reply nope")[0]).toMatch(/Unknown message list "nope"/);
     expect(errors("let n = 5\nflow main\n  x: else -> reply n")[0]).toMatch(/is a number/);
-    expect(errors('let m = ["a"]\nflow main\n  x: when intent = greet >= m -> model\n  y: else -> model')[0]).toMatch(/holds messages/);
-    expect(() => parse("flow main\n  x: when intent is greet -> model")).toThrow(/Use "=" here/);
+    expect(errors('let m = ["a"]\nflow main\n  x: when intent == greet >= m -> model\n  y: else -> model')[0]).toMatch(/holds messages/);
+    expect(() => parse("flow main\n  x: when intent is greet -> model")).toThrow(/Use "==" to compare/);
+    expect(() => parse("flow main\n  x: when intent = greet -> model")).toThrow(/Use "==" to compare/);
     expect(() => parse('let m = [\n  "a",\n')).toThrow(/never closed/);
   });
 });

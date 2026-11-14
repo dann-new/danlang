@@ -18,8 +18,8 @@ use "./schedule.dan"
 field topic = [money, schedule, other]
 
 flow main
-  money: when topic = money -> money_rules
-  schedule: when topic = schedule -> schedule_rules
+  money: when topic == money -> money_rules
+  schedule: when topic == schedule -> schedule_rules
   open: else -> model
 ```
 

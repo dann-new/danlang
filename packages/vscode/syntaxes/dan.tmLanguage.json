@@ -128,7 +128,7 @@
           }
         },
         {
-          "match": ">=|=",
+          "match": ">=|==|=",
           "name": "keyword.operator.comparison.dan"
         },
         {

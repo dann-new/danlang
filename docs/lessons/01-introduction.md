@@ -44,7 +44,7 @@ field topic = [greeting, weather, other]
 let hello_messages = ["Hi there!", "Hello! How can I help?", "Hey! 👋"]
 
 flow main
-  say-hi: when topic = greeting -> reply hello_messages
+  say-hi: when topic == greeting -> reply hello_messages
   open: else -> model
 ```
 

@@ -14,19 +14,19 @@ let invoice_question = [
 ]
 
 flow bills
-  tax-due: when action = tax_due >= sure -> direct tax_due
-  to-approve: when action = returns_to_approve >= sure -> direct returns_to_approve
-  money: when action = money_summary >= sure -> direct money_summary
+  tax-due: when action == tax_due >= sure -> direct tax_due
+  to-approve: when action == returns_to_approve >= sure -> direct returns_to_approve
+  money: when action == money_summary >= sure -> direct money_summary
 
-  expense: when action = log_expense >= sure
+  expense: when action == log_expense >= sure
     has-amount: when has amount -> model
     answer: when asked expense_question -> model
     ask-amount: else -> ask expense_question
 
-  invoice: when action = create_invoice >= sure
+  invoice: when action == create_invoice >= sure
     has-amount: when has amount -> model
     answer: when asked invoice_question -> model
     ask-details: else -> ask invoice_question
 
-  2307: when action = make_2307 >= sure -> model
+  2307: when action == make_2307 >= sure -> model
   open: else -> model

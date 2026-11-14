@@ -25,7 +25,7 @@ Add `>=` and a number after the field. `>=` means **"at least"**.
 field topic = [taxes, other]
 
 flow main
-  tax: when topic = taxes >= 0.8 -> reply "Here is your tax summary."
+  tax: when topic == taxes >= 0.8 -> reply "Here is your tax summary."
   open: else -> model
 ```
 
@@ -43,8 +43,8 @@ field topic = [taxes, invoices, other]
 let sure = 0.8
 
 flow main
-  tax: when topic = taxes >= sure -> reply "Here is your tax summary."
-  invoice: when topic = invoices >= sure -> reply "Let's make an invoice."
+  tax: when topic == taxes >= sure -> reply "Here is your tax summary."
+  invoice: when topic == invoices >= sure -> reply "Let's make an invoice."
   open: else -> model
 ```
 
@@ -61,7 +61,7 @@ If later you think 0.8 is too strict, change `let sure = 0.7` and every rule fol
 > the AI answer. JuanStack uses `0.9` (90% sure) before refusing.
 
 <details>
-<summary>Test yourself: Jev is 0.75 sure. Does <code>when topic = taxes >= 0.8</code> fit?</summary>
+<summary>Test yourself: Jev is 0.75 sure. Does <code>when topic == taxes >= 0.8</code> fit?</summary>
 
 No. 0.75 is less than 0.8, so the rule is skipped and danlang moves to the next one.
 

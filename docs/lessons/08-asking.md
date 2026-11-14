@@ -19,7 +19,7 @@ let amount_question = [
 ]
 
 flow main
-  expense: when action = log_expense -> ask amount_question
+  expense: when action == log_expense -> ask amount_question
   open: else -> model
 ```
 
@@ -42,7 +42,7 @@ let amount_question = [
 ]
 
 flow main
-  expense: when action = log_expense
+  expense: when action == log_expense
     answer: when asked amount_question -> model
     ask-amount: else -> ask amount_question
   open: else -> model
@@ -60,7 +60,7 @@ Try it: run it once, then paste the bot's question into **Bot's last message** a
 Most "do something" rules end up looking like this:
 
 ```text
-  expense: when action = log_expense >= sure
+  expense: when action == log_expense >= sure
     has-amount: when has amount -> model           # all details given: let the AI prepare it
     answer: when asked amount_question -> model    # they're answering our question
     ask-amount: else -> ask amount_question        # details missing: ask (free!)

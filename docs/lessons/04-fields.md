@@ -28,19 +28,31 @@ field mood = [happy, angry, neutral]
 
 ## Using a field in a rule: `when`
 
-To use a rule only for certain messages, write `when`, then the field, `=`, and the answer:
+To use a rule only for certain messages, write `when`, then the field, `==`, and the answer:
 
 ```dan
 field mood = [happy, angry, neutral]
 
 flow main
-  calm-down: when mood = angry -> reply "I'm really sorry about that. Let me help."
+  calm-down: when mood == angry -> reply "I'm really sorry about that. Let me help."
   open: else -> model
 ```
 
 Read it as: *"when the mood is angry, then reply 'I'm really sorry...'"*.
 
 Try it and switch **mood** to `angry`.
+
+## `=` and `==` are different
+
+This trips up almost everyone at first, so here's the simple rule:
+
+| Sign | Read it as | Used for | Example |
+|---|---|---|---|
+| `=` | "**is set to**" | giving something a name: `let`, `field`, `check` | `let sure = 0.8` |
+| `==` | "**is equal to?**" (a question) | testing a message in a rule | `when mood == angry` |
+
+One `=` **gives** a value. Two `==` **ask** about a value. If you mix them up, danlang tells you:
+*Use "==" to compare.*
 
 ## One of several answers
 
@@ -50,15 +62,15 @@ To match **any of several** answers, put them in a list:
 field topic = [taxes, invoices, schedule, weather]
 
 flow main
-  money: when topic = [taxes, invoices] -> reply "Let's talk money!"
+  money: when topic == [taxes, invoices] -> reply "Let's talk money!"
   open: else -> model
 ```
 
-`topic = [taxes, invoices]` means *"the topic is taxes **or** invoices"*.
+`topic == [taxes, invoices]` means *"the topic is taxes **or** invoices"*.
 
 ## Why declare fields at all?
 
-Because it **catches typos**. If you write `when mood = angy`, danlang tells you right away:
+Because it **catches typos**. If you write `when mood == angy`, danlang tells you right away:
 
 ```text
 "angy" is not a value of field mood. Allowed: happy, angry, neutral.
@@ -77,7 +89,7 @@ In the **Try it** page, you play the part of Jev: you pick the answers from the 
 <summary>Test yourself: write a rule that replies "Hello!" when <code>topic</code> is <code>greeting</code>.</summary>
 
 ```text
-say-hi: when topic = greeting -> reply "Hello!"
+say-hi: when topic == greeting -> reply "Hello!"
 ```
 
 </details>

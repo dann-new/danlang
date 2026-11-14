@@ -37,8 +37,8 @@ let hellos = ["Hi!", "Hello there!"]
 let sorry = ["Sorry, I only help with business questions."]
 
 flow main
-  hi: when topic = greeting -> reply hellos
-  no: when topic = off_topic -> refuse sorry
+  hi: when topic == greeting -> reply hellos
+  no: when topic == off_topic -> refuse sorry
   open: else -> model
 ```
 
@@ -48,7 +48,7 @@ Some answers need real data: *"How much tax do I owe?"*. A fixed message can't k
 out with its own code, for free.
 
 ```text
-tax: when topic = taxes >= sure -> direct tax_summary
+tax: when topic == taxes >= sure -> direct tax_summary
 ```
 
 danlang tells your app "do `tax_summary`", and the app's code does the work. The name is up to you and your developer.
@@ -62,11 +62,11 @@ field topic = [food, other]
 field meal = [breakfast, lunch]
 
 flow main
-  food: when topic = food -> food_rules
+  food: when topic == food -> food_rules
   open: else -> model
 
 flow food_rules
-  morning: when meal = breakfast -> reply "Coffee and pandesal!"
+  morning: when meal == breakfast -> reply "Coffee and pandesal!"
   open: else -> reply "Let's find something tasty."
 ```
 

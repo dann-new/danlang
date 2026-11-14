@@ -8,7 +8,7 @@ export type Pos = { file: string; line: number; col: number };
 
 /** A test on one branch line (the part after `when`). */
 export type Cond =
-  /** `intent = schedule_task`, `intent = [a, b]` (any of them), optionally `>= 0.9` (a number or a `let` name). */
+  /** `intent == schedule_task`, `intent == [a, b]` (any of them), optionally `>= 0.9` (a number or a `let` name). */
   | { kind: "is"; field: string; values: string[]; min?: number | string; pos: Pos }
   /** `has amount`: a `check` on the message text (a regex, or code the host app provides). */
   | { kind: "has"; check: string; pos: Pos }

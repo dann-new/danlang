@@ -20,7 +20,7 @@ field topic = [taxes, other]
 field mood = [happy, angry]
 
 flow main
-  angry-tax: when topic = taxes and mood = angry -> reply "Taxes are stressful. Let's sort it out together."
+  angry-tax: when topic == taxes and mood == angry -> reply "Taxes are stressful. Let's sort it out together."
   open: else -> model
 ```
 
@@ -33,7 +33,7 @@ field topic = [taxes, invoices, other]
 field mood = [happy, angry]
 
 flow main
-  careful: when topic = taxes or mood = angry -> model
+  careful: when topic == taxes or mood == angry -> model
   open: else -> reply "Happy to help!"
 ```
 
@@ -43,7 +43,7 @@ flow main
 field mood = [happy, angry, neutral]
 
 flow main
-  cheerful: when not mood = angry -> reply "Great to hear from you!"
+  cheerful: when not mood == angry -> reply "Great to hear from you!"
   open: else -> model
 ```
 
@@ -52,7 +52,7 @@ flow main
 When you mix `and` with `or`, use round brackets `( )` to make your meaning clear, just like in math:
 
 ```text
-when topic = taxes and (mood = angry or mood = neutral)
+when topic == taxes and (mood == angry or mood == neutral)
 ```
 
 Without brackets, `and` is done first. Brackets make it easy for the next person to read, so use them whenever you
@@ -62,7 +62,7 @@ mix the two.
 <summary>Test yourself: write a test for "the topic is taxes but the mood is not happy".</summary>
 
 ```text
-when topic = taxes and not mood = happy
+when topic == taxes and not mood == happy
 ```
 
 </details>

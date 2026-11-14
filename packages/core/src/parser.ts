@@ -13,7 +13,7 @@ type Tok =
 
 const IDENT = /^[A-Za-z_][A-Za-z0-9_]*/;
 const BRANCH_ID = /^([A-Za-z0-9_][A-Za-z0-9_-]*):(?=\s|$)/;
-const OPS = ["->", ">=", "[", "]", ",", "(", ")", "="];
+const OPS = ["->", ">=", "==", "[", "]", ",", "(", ")", "="];
 
 /** Splits off a trailing `# comment` that is not inside a string. Returns [code, comment]. */
 function splitComment(line: string): [string, string | undefined] {
@@ -155,9 +155,9 @@ function parseAtom(c: Cursor): Cond {
   if (word === "has") return { kind: "has", check: c.ident("a check name after `has`"), pos };
   if (word === "asked") return { kind: "asked", ask: c.ident("an ask id after `asked`"), pos };
   let values: string[];
-  if (c.isWord("is") || c.isWord("in"))
-    throw new DanError(`Use "=" here, like \`${word} = value\` or \`${word} = [a, b]\`.`, c.here());
-  if (!c.isOp("=")) throw new DanError(`Expected "=" after "${word}", like \`${word} = value\`.`, c.here());
+  if (c.isWord("is") || c.isWord("in") || c.isOp("="))
+    throw new DanError(`Use "==" to compare, like \`${word} == value\` or \`${word} == [a, b]\`.`, c.here());
+  if (!c.isOp("==")) throw new DanError(`Expected "==" after "${word}", like \`${word} == value\`.`, c.here());
   c.i++;
   if (c.isOp("[")) {
     c.i++;

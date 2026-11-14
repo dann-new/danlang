@@ -23,13 +23,13 @@ let expense_question = [
 ]
 
 flow main
-  off-topic: when intent = out_of_scope >= 0.9 -> refuse "I can only help with your business."
-  money: when intent = [bir_forms, business_qa] -> bills
+  off-topic: when intent == out_of_scope >= 0.9 -> refuse "I can only help with your business."
+  money: when intent == [bir_forms, business_qa] -> bills
   open: else -> model
 
 flow bills
-  tax-due: when action = tax_due >= sure -> direct tax_due
-  expense: when action = log_expense >= sure
+  tax-due: when action == tax_due >= sure -> direct tax_due
+  expense: when action == log_expense >= sure
     has-amount: when has amount -> model
     answer: when asked expense_question -> model
     ask-amount: else -> ask expense_question
@@ -53,7 +53,7 @@ reaches an action after `->`.
 
 Branch: `id: when <test> -> <action>`, or `id: else -> <action>`, or a test with branches indented under it.
 
-Tests: `field = value`, `field = [a, b]` (any of them), either with `>= 0.8` or `>= sure`; `has check`;
+Tests: `field == value`, `field == [a, b]` (any of them), either with `>= 0.8` or `>= sure`; `has check`;
 `asked message_list`; combined with `and`, `or`, `not`, `( )`.
 
 Actions: `model` (LLM), `reply "text"`, `refuse "text"`, `ask id "text"` (texts may be a list; one is picked),

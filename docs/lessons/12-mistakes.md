@@ -19,7 +19,7 @@ Try this broken example. The **Problems** box in the Try it page lists every mis
 field mood = [happy, angry]
 
 flow main
-  calm: when mod = angry -> reply "Sorry!"
+  calm: when mod == angry -> reply "Sorry!"
   open: else -> reply hellos
 ```
 
@@ -32,7 +32,7 @@ flow main
 | `Unknown message list "hellos"` | You used a name that has no `let`. | Add `let hellos = ["Hi!"]`. |
 | `can never be reached` | A rule is below an `else`. | Move the `else` rule to the bottom. |
 | `does nothing` | A rule has no `->` and nothing under it. | Add `-> model` (or another action), or rules under it. |
-| `Use "=" here` | You wrote `is` or `in`. | Write `mood = angry`. |
+| `Use "==" to compare` | You wrote `=`, `is` or `in` in a rule. | Write `mood == angry` (two equal signs). |
 | `Indentation does not line up` | The spaces at the start are uneven. | Make rules at the same level start at the same column. |
 | `Use spaces, not tabs` | A Tab key was used. | Replace it with spaces. |
 | `has no closing quote` | A message is missing its ending `"`. | Add the `"` at the end. |
@@ -56,7 +56,7 @@ field mood = [happy, angry]
 let hellos = ["Hi!", "Hello!"]
 
 flow main
-  calm: when mood = angry -> reply "Sorry!"
+  calm: when mood == angry -> reply "Sorry!"
   open: else -> reply hellos
 ```
 

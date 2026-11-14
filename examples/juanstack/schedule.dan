@@ -12,10 +12,10 @@ let when_question = [
 ]
 
 flow schedule
-  read: when action = schedule_read >= sure
+  read: when action == schedule_read >= sure
     plain-range: when has plain_range -> direct schedule_read
     other-range: else -> model
-  create: when action = schedule_create >= sure
+  create: when action == schedule_create >= sure
     has-when: when has day_or_time -> model
     answer: when asked when_question -> model
     ask-when: else -> ask when_question

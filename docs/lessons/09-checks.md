@@ -27,7 +27,7 @@ field action = [log_expense, other]
 check amount = /\d+/
 
 flow main
-  expense: when action = log_expense
+  expense: when action == log_expense
     has-amount: when has amount -> reply "Got it, saving your expense!"
     ask-amount: else -> ask "How much was it?"
   open: else -> model

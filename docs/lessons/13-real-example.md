@@ -31,14 +31,14 @@ let expense_question = [
 ]
 
 flow main
-  jev-down: when source = fallback -> model
-  off-topic: when intent = out_of_scope >= very_sure and action = other -> refuse off_topic_messages
-  money: when intent = [bir_forms, business_qa] -> bills
+  jev-down: when source == fallback -> model
+  off-topic: when intent == out_of_scope >= very_sure and action == other -> refuse off_topic_messages
+  money: when intent == [bir_forms, business_qa] -> bills
   open: else -> model
 
 flow bills
-  tax-due: when action = tax_due >= sure -> direct tax_due
-  expense: when action = log_expense >= sure
+  tax-due: when action == tax_due >= sure -> direct tax_due
+  expense: when action == log_expense >= sure
     has-amount: when has amount -> model
     answer: when asked expense_question -> model
     ask-amount: else -> ask expense_question

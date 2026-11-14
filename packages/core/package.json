@@ -9,7 +9,9 @@
   },
   "files": [
     "src",
-    "!src/__tests__"
+    "!src/__tests__",
+    "SKILL.md",
+    "AGENTS.md"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
