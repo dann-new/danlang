@@ -6,6 +6,8 @@
     "node": ">=24"
   },
   "scripts": {
+    "dev:docs": "pnpm --filter docs dev",
+    "build:docs": "pnpm --filter docs build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "verify": "pnpm typecheck && pnpm test",

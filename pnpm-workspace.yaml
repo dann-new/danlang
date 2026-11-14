@@ -1,8 +1,18 @@
 packages:
+  - apps/*
   - packages/*
+
+# pnpm blocks dependency install scripts unless listed here (supply-chain protection).
+allowBuilds:
+  sharp: false
+  unrs-resolver: false
 
 # One place for shared dependency versions. Packages reference these as "catalog:".
 catalog:
   typescript: ~6.0.3
   vitest: ^5.1.0
   "@types/node": ^24.0.0
+  react: 19.3.0
+  react-dom: 19.3.0
+  "@types/react": ~19.3.0
+  "@types/react-dom": ~19.3.0
