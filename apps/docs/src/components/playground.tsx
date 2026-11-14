@@ -4,7 +4,7 @@
  * The "Try it Yourself" page. Runs the real @danlang/core in the browser: no server, no AI calls.
  * The visitor plays the part of the classifier by picking each field's answer and how sure it is.
  */
-import { check, createEngine, linkSources, type Decision, type Diagnostic, type Program } from "@danlang/core";
+import { START, check, createEngine, linkSources, type ConversationState, type Decision, type Diagnostic, type Program } from "@danlang/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { decodeCode, highlightDan } from "@/lib/highlight";
 
@@ -54,6 +54,8 @@ export function Playground() {
   const [sure, setSure] = useState<Record<string, number>>({});
   const [host, setHost] = useState<Record<string, boolean>>({});
   const [result, setResult] = useState<Decision | null>(null);
+  // Where the conversation is waiting after the last Run (see the lesson "Waiting and uproot").
+  const [convo, setConvo] = useState<ConversationState>(START);
   const [runError, setRunError] = useState<string | null>(null);
   const preRef = useRef<HTMLPreElement>(null);
 
@@ -70,6 +72,7 @@ export function Playground() {
   }, []);
 
   const { program, problems } = useMemo(() => compile(code), [code]);
+  useEffect(() => setConvo(START), [code]);
   const fields = program?.fields ?? {};
   const hostChecks = Object.values(program?.checks ?? {}).filter((c) => c.host).map((c) => c.name);
   const asks = Object.values(program?.asks ?? {}).flat();
@@ -92,7 +95,10 @@ export function Playground() {
         factValues[name] = facts[name] ?? values[0];
         conf[name] = sure[name] ?? 0.95;
       }
-      setResult(engine.decide({ text: message, facts: factValues, confidence: conf, ...(lastReply ? { lastReply } : {}) }));
+      const d = engine.decide({ text: message, facts: factValues, confidence: conf, state: convo, ...(lastReply ? { lastReply } : {}) });
+      setResult(d);
+      setConvo(d.state);
+      if ("text" in d && d.kind === "ask") setLastReply(d.text);
     } catch (e) {
       setRunError((e as Error).message);
     }
@@ -193,6 +199,25 @@ export function Playground() {
             Pretend the app check <code>{name}</code> passes
           </label>
         ))}
+
+        <div className={`convo ${convo.at.length ? "waiting" : ""}`}>
+          <div>
+            <strong>Conversation:</strong>{" "}
+            {convo.at.length ? (
+              <>
+                waiting at <code>{convo.at.join("/")}</code>
+                {convo.found.length ? <> · remembers {convo.found.map((f) => <code key={f}>{f}</code>)}</> : null}
+              </>
+            ) : (
+              "at the top"
+            )}
+          </div>
+          {convo.at.length > 0 && (
+            <button type="button" onClick={() => setConvo(START)}>
+              Start over
+            </button>
+          )}
+        </div>
 
         <div className="field">
           <label htmlFor="last">Bot&apos;s last message (for &quot;asked&quot;)</label>

@@ -37,6 +37,7 @@ flow main
 | `Use spaces, not tabs` | A Tab key was used. | Replace it with spaces. |
 | `has no closing quote` | A message is missing its ending `"`. | Add the `"` at the end. |
 | `loop forever` | Flow A jumps to B and B jumps back to A. | Remove one of the jumps. |
+| `nowhere to go up to` | `uproot` is used in the top rules of `flow main`. | Use `model` or `reply` there; use `uproot` inside a rule group. |
 | `A confidence must be between 0 and 1, or 0% and 100%` | You wrote `>= 80` instead of `>= 80%`. | Add the `%`, or write 0.8. |
 
 ## Warnings you may see

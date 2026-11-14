@@ -78,6 +78,7 @@ danlang then uses that guess to pick the right rule. You'll learn how in the nex
 | Rules inside rules | make a tree of decisions |
 | Asking questions | ask for missing details, without asking twice |
 | Checks | look for words or numbers in the message |
+| Waiting and uproot | wait at a step until the details are there, and let people leave |
 | Actions | everything a rule can do |
 | Many files | split a big bot into smaller files |
 | Fixing mistakes | understand danlang's error messages |

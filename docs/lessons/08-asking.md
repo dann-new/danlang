@@ -68,6 +68,10 @@ Most "do something" rules end up looking like this:
 
 `has order_number` checks if the message already has an order number in it. You'll learn it in the next lesson, **Checks**.
 
+> **Coming up:** after an `ask`, the bot actually **waits** at that step, so the answer is checked there, not from
+> the top. The lesson **Waiting and uproot** shows how to use that to collect several details, and how to let
+> people leave with `uproot`.
+
 <details>
 <summary>Test yourself: why does <code>answer:</code> come before <code>ask-number:</code>?</summary>
 

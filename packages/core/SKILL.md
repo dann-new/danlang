@@ -64,24 +64,38 @@ Names: letters, digits, `_`, `-`; unique within one level. Indent with spaces (2
 | `ask X` | ask for a missing detail; enables `asked X` next turn | no |
 | `direct handler` | app code answers (returns the handler name) | no |
 | `flow_name` | continue in that flow (path keeps growing) | depends |
+| `uproot` / `uproot(2)` / `uproot(all)` | leave the node the chat waits at, go up N levels (or to the top), re-check the same message there | depends |
 
 `X` = a `let` name, `"text"`, or `["a", "b"]`. `ask list_name` uses the list name as the ask id.
 
+## Conversations (state)
+
+- After `ask`, the conversation **waits at the node that contains the rule**. The next message is checked from that
+  node's rules, not from `main`, so short answers ("3pm", "friday") still land there even if the classifier calls
+  them `other`.
+- While waiting, every `check` that matched is **remembered** (`has time` stays true). Any action other than `ask`
+  finishes the task: back to the top, memory cleared.
+- The app must pass state along: `const d = engine.decide({ ..., state }); state = d.state;`
+  (`START` = the top). `d.startedAt` and `d.moves` show where it resumed and any uproots.
+- `uproot` is not allowed in the top rules of `flow main`.
+
 ## Patterns
 
-Missing-detail pattern (use for every "do something" action):
+Missing-detail pattern (use for every "do something" action): wait until every detail is there.
 
 ```dan
-field action = [return_item, other]
-let sure = 0.8
-check order_number = /\d{4,}/
-let order_number_question = ["What's your order number?", "Which order is it? The number is in your email."]
+field action = [book, other]
+check date = /\b(monday|friday|tomorrow)\b/i
+check time = /\b\d{1,2}\s?(am|pm)\b/i
+check never_mind = /\b(never ?mind|cancel)\b/i
 
 flow main
-  return: when action == return_item >= sure
-    has-number: when has order_number -> model
-    answer: when asked order_number_question -> model
-    ask-number: else -> ask order_number_question
+  booking: when action == book
+    ready: when has date and has time -> model
+    stop: when has never_mind -> uproot(all)
+    need-date: when has time -> ask "What day?"
+    need-time: when has date -> ask "What time?"
+    need-both: else -> ask ["What day and time?", "When should it be?"]
   open: else -> model
 ```
 

@@ -60,7 +60,10 @@ Tests: `field == value`, `field == [a, b]` (any of them), either with `>= 0.8` o
 `asked message_list`; combined with `and`, `or`, `not`, `( )`.
 
 Actions: `model` (LLM), `reply "text"`, `refuse "text"`, `ask id "text"` (texts may be a list; one is picked),
-`direct name` (the app answers in code), or a flow name (continue there).
+`direct name` (the app answers in code), `uproot` / `uproot(2)` / `uproot(all)`, or a flow name (continue there).
+
+Conversations: after `ask`, the chat **waits** at that node; the next message is checked from there and details found
+there are remembered. Pass `decision.state` back as `turn.state`. `uproot` leaves the node.
 
 ## Using it
 

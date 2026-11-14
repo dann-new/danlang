@@ -574,3 +574,37 @@ pre.code {
     gap: 12px;
   }
 }
+
+/* Playground: where the conversation is waiting */
+.convo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 14px;
+}
+.convo.waiting {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.convo code {
+  margin: 0 2px;
+}
+.convo button {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+}
+.result code,
+.convo code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.9em;
+}

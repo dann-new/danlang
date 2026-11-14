@@ -5,7 +5,7 @@ summary: Everything a rule can do after the arrow.
 
 # Actions
 
-The part after `->` is the **action**: what the bot does when the rule fits. There are six.
+The part after `->` is the **action**: what the bot does when the rule fits. There are seven.
 
 | Action | What happens | Uses the big AI? |
 |---|---|---|
@@ -14,6 +14,7 @@ The part after `->` is the **action**: what the bot does when the rule fits. The
 | `refuse messages` | Politely say "I can't help with that". | No (free) |
 | `ask messages` | Ask for a missing detail (see **Asking questions**). | No (free) |
 | `direct name` | Your app answers with its own code, like an order tracker. | No (free) |
+| `uproot`, `uproot(2)`, `uproot(all)` | Leave the step the bot is waiting at, and check the message again higher up (see **Waiting and uproot**). | Depends |
 | `flow-name` | Continue inside another flow. | Depends |
 
 ## `model`
