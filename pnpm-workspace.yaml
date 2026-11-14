@@ -1,0 +1,8 @@
+packages:
+  - packages/*
+
+# One place for shared dependency versions. Packages reference these as "catalog:".
+catalog:
+  typescript: ~6.0.3
+  vitest: ^5.1.0
+  "@types/node": ^24.0.0

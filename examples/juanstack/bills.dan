@@ -1,0 +1,21 @@
+# BIR, taxes, money and Books.
+
+check amount = /(₱|php|p\s?\d)|\b\d[\d,]*(\.\d+)?\s?(k|pesos?|php)?\b/i
+
+flow bills
+  tax-due: when action is tax_due >= sure -> direct tax_due                       # How much tax do I owe?
+  to-approve: when action is returns_to_approve >= sure -> direct returns_to_approve  # Anything to approve?
+  money: when action is money_summary >= sure -> direct money_summary             # How much did I earn / spend?
+
+  expense: when action is log_expense >= sure                                     # Log an expense
+    has-amount: when has amount -> model                                          # model prepares the confirm card
+    answer: when asked expense_amount -> model                                    # answering our question
+    ask-amount: else -> ask expense_amount "Sure! How much was it, and who did you pay? For example: \"₱1,500 to Meralco for electricity.\""
+
+  invoice: when action is create_invoice >= sure                                  # Create an invoice
+    has-amount: when has amount -> model
+    answer: when asked invoice_details -> model
+    ask-details: else -> ask invoice_details "Sure! Who is the invoice for, what is it for, and how much? For example: \"Acme Inc, October bookkeeping, ₱25,000.\""
+
+  2307: when action is make_2307 >= sure -> model                                 # must find the invoice
+  open: else -> model

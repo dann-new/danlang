@@ -1,0 +1,24 @@
+# Juan's decision tree, written in danlang. A port of JuanStack's apps/web/src/ai/juan-tree.ts.
+#
+# How it runs: rules or Jev answer the facts below (intent, action, source) with a confidence. The engine then walks
+# this file from `flow main`, top to bottom, and takes the FIRST branch whose test passes, until it reaches an action
+# after "->". model = ask the LLM (Gemini). Everything else is answered without the LLM.
+
+use "./bills.dan"
+use "./schedule.dan"
+
+# What the classifier can answer.
+field source = [rules, jev, fallback]
+field intent = [bir_forms, schedule_task, bank_statement, business_qa, general, out_of_scope]
+field action = [tax_due, returns_to_approve, money_summary, schedule_read, schedule_create, log_expense, make_2307, create_invoice, other]
+
+# How sure Jev must be.
+let sure = 0.8            # to follow an action branch
+let surely_off = 0.9      # before declining without the model
+
+flow main
+  jev-down: when source is fallback -> model                 # Jev could not answer
+  off-topic: when intent is out_of_scope >= surely_off and action is other -> refuse "I can only help with your business: your schedule, Books, money and BIR forms. Try \"How much tax do I owe?\" or \"What's on my schedule tomorrow?\""
+  bir-money: when intent in [bir_forms, business_qa] -> bills  # About BIR, taxes, money or Books
+  schedule: when intent is schedule_task -> schedule           # About the schedule
+  open: else -> model                                          # Anything else
