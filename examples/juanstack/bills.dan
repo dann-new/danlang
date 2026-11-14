@@ -1,21 +1,32 @@
-# BIR, taxes, money and Books.
+# Taxes, money, expenses and invoices.
 
 check amount = /(₱|php|p\s?\d)|\b\d[\d,]*(\.\d+)?\s?(k|pesos?|php)?\b/i
 
+let expense_question = [
+  "Sure! How much was it, and who did you pay? For example: \"₱1,500 to Meralco for electricity.\"",
+  "Got it! How much did you spend, and on what?",
+  "Okay! What was the amount, and who was it paid to?",
+]
+
+let invoice_question = [
+  "Sure! Who is the invoice for, what is it for, and how much? For example: \"Acme Inc, October bookkeeping, ₱25,000.\"",
+  "Happy to help! Who should I bill, for what, and how much?",
+]
+
 flow bills
-  tax-due: when action is tax_due >= sure -> direct tax_due                       # How much tax do I owe?
-  to-approve: when action is returns_to_approve >= sure -> direct returns_to_approve  # Anything to approve?
-  money: when action is money_summary >= sure -> direct money_summary             # How much did I earn / spend?
+  tax-due: when action = tax_due >= sure -> direct tax_due
+  to-approve: when action = returns_to_approve >= sure -> direct returns_to_approve
+  money: when action = money_summary >= sure -> direct money_summary
 
-  expense: when action is log_expense >= sure                                     # Log an expense
-    has-amount: when has amount -> model                                          # model prepares the confirm card
-    answer: when asked expense_amount -> model                                    # answering our question
-    ask-amount: else -> ask expense_amount "Sure! How much was it, and who did you pay? For example: \"₱1,500 to Meralco for electricity.\""
-
-  invoice: when action is create_invoice >= sure                                  # Create an invoice
+  expense: when action = log_expense >= sure
     has-amount: when has amount -> model
-    answer: when asked invoice_details -> model
-    ask-details: else -> ask invoice_details "Sure! Who is the invoice for, what is it for, and how much? For example: \"Acme Inc, October bookkeeping, ₱25,000.\""
+    answer: when asked expense_question -> model
+    ask-amount: else -> ask expense_question
 
-  2307: when action is make_2307 >= sure -> model                                 # must find the invoice
+  invoice: when action = create_invoice >= sure
+    has-amount: when has amount -> model
+    answer: when asked invoice_question -> model
+    ask-details: else -> ask invoice_question
+
+  2307: when action = make_2307 >= sure -> model
   open: else -> model

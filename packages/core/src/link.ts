@@ -54,7 +54,20 @@ export function link(entryFile: string, load: Loader, entryFlow = "main"): Progr
     }
   };
   visit(normalize(entryFile));
+  for (const f of Object.values(program.flows)) fillMessages(program, f.branches);
+  for (const f of Object.values(program.flows)) collectAsks(program, f.branches);
   return program;
+}
+
+/** `-> reply greetings`: copy the messages from `let greetings = [...]`. A missing or wrong `let` is left empty for the checker to report. */
+function fillMessages(p: Program, branches: Branch[]) {
+  for (const b of branches) {
+    if (b.leaf && "from" in b.leaf && b.leaf.from) {
+      const v = p.lets[b.leaf.from];
+      b.leaf.texts = Array.isArray(v) ? v : [];
+    }
+    fillMessages(p, b.children);
+  }
 }
 
 /** Links a program from in-memory sources, e.g. `{ "main.dan": "...", "bills.dan": "..." }`. Handy for tests and the Studio. */
@@ -93,13 +106,12 @@ function merge(p: Program, ast: FileAst) {
     const prev = p.flows[f.name];
     if (prev) dup("flow", f.name, prev.pos, f.pos);
     p.flows[f.name] = f;
-    collectAsks(p, f.branches);
   }
 }
 
 function collectAsks(p: Program, branches: Branch[]) {
   for (const b of branches) {
-    if (b.leaf?.kind === "ask") {
+    if (b.leaf?.kind === "ask" && b.leaf.texts.length) {
       const prev = p.asks[b.leaf.id];
       if (prev && prev.join("\u0000") !== b.leaf.texts.join("\u0000"))
         throw new DanError(`ask "${b.leaf.id}" is used again with different texts. Give it a new id.`, b.pos);

@@ -72,7 +72,7 @@ export function createEngine(program: Program, options: EngineOptions = {}): Eng
         const value = turn.facts[cond.field];
         if (value === undefined || !cond.values.includes(value)) return false;
         if (cond.min === undefined) return true;
-        const min = typeof cond.min === "string" ? program.lets[cond.min]! : cond.min;
+        const min = typeof cond.min === "string" ? (program.lets[cond.min] as number) : cond.min;
         return (turn.confidence?.[cond.field] ?? 0) >= min;
       }
     }

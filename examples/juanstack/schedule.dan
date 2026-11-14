@@ -1,17 +1,22 @@
 # The schedule.
 
-# No "may": in Tagalog it means "there is" ("may meeting ba ako"), not the month.
+# A day or a time. (Not "may": in Tagalog it means "there is", not the month.)
 check day_or_time = /\b(today|tonight|tomorrow|next|this|later|mamaya|ngayon|bukas|mon(day)?|tue(s(day)?)?|wed(nesday)?|thu(rs(day)?)?|fri(day)?|sat(urday)?|sun(day)?|lunes|martes|miyerkules|huwebes|biyernes|sabado|linggo|morning|noon|lunch|afternoon|evening|umaga|tanghali|hapon|gabi|jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|june?|july?|aug(ust)?|sep(t(ember)?)?|oct(ober)?|nov(ember)?|dec(ember)?|\d{1,2}(:\d{2})?\s?(am|pm)|\d{1,2}:\d{2}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2})\b/i
 
-# Today / tomorrow / this week / next week needs today's date, so the app provides this check in code.
+# Today / tomorrow / this week / next week. Needs today's date, so the app checks it.
 check plain_range = host
 
+let when_question = [
+  "Sure! What day and time should I set it for, and what is it about? For example: \"Call with Ana on Friday at 2 PM.\"",
+  "Okay! When should it be, and what's it about?",
+]
+
 flow schedule
-  read: when action is schedule_read >= sure                     # What's on my schedule?
-    plain-range: when has plain_range -> direct schedule_read    # today, tomorrow, this week or next week
+  read: when action = schedule_read >= sure
+    plain-range: when has plain_range -> direct schedule_read
     other-range: else -> model
-  create: when action is schedule_create >= sure                 # Schedule something
-    has-when: when has day_or_time -> model                      # model prepares the confirm card
-    answer: when asked schedule_when -> model
-    ask-when: else -> ask schedule_when "Sure! What day and time should I set it for, and what is it about? For example: \"Call with Ana on Friday at 2 PM.\""
+  create: when action = schedule_create >= sure
+    has-when: when has day_or_time -> model
+    answer: when asked when_question -> model
+    ask-when: else -> ask when_question
   open: else -> model

@@ -54,7 +54,7 @@ test("the example has no errors or warnings", () => {
 describe("direct answers (no Gemini)", () => {
   test("tax due goes straight to the tax engine", () => {
     const d = decide({ text: "magkano tax ko ngayong quarter?", intent: "bir_forms", action: "tax_due" });
-    expect(d).toMatchObject({ kind: "direct", path: "bir-money/tax-due", name: "tax_due" });
+    expect(d).toMatchObject({ kind: "direct", path: "money/tax-due", name: "tax_due" });
   });
   test("returns to approve", () => {
     expect(decide({ text: "anything to approve?", intent: "bir_forms", action: "returns_to_approve", source: "rules" }).kind).toBe("direct");
@@ -74,17 +74,17 @@ describe("direct answers (no Gemini)", () => {
 describe("missing details are asked for", () => {
   test("an expense with no amount", () => {
     const d = decide({ text: "log expense for meralco", action: "log_expense" });
-    expect(d).toMatchObject({ kind: "ask", ask: "expense_amount" });
+    expect(d).toMatchObject({ kind: "ask", ask: "expense_question" });
     if (d.kind === "ask") expect(d.text).toContain("₱1,500 to Meralco");
   });
   test("an expense with an amount goes to the model", () => {
     expect(decide({ text: "log a ₱1,500 expense for ink", action: "log_expense" }).kind).toBe("model");
   });
   test("never asks the same question twice in a row", () => {
-    expect(decide({ text: "Meralco", action: "log_expense", lastAssistantText: ASK.expense_amount![0] }).kind).toBe("model");
+    expect(decide({ text: "Meralco", action: "log_expense", lastAssistantText: ASK.expense_question![0] }).kind).toBe("model");
   });
   test("a meeting with no day or time", () => {
-    expect(decide({ text: "schedule a meeting with Ana", intent: "schedule_task", action: "schedule_create" })).toMatchObject({ kind: "ask", ask: "schedule_when" });
+    expect(decide({ text: "schedule a meeting with Ana", intent: "schedule_task", action: "schedule_create" })).toMatchObject({ kind: "ask", ask: "when_question" });
   });
   test("a meeting with a day goes to the model", () => {
     expect(decide({ text: "schedule a call with Ana friday", intent: "schedule_task", action: "schedule_create" }).kind).toBe("model");
@@ -95,15 +95,15 @@ describe("create an invoice", () => {
   test("no amount yet: fixed question", () => {
     expect(decide({ text: "create an invoice", action: "create_invoice", source: "rules" })).toMatchObject({
       kind: "ask",
-      ask: "invoice_details",
-      path: "bir-money/invoice/ask-details",
+      ask: "invoice_question",
+      path: "money/invoice/ask-details",
     });
   });
   test("an amount goes to the model", () => {
     expect(decide({ text: "invoice Acme ₱25,000 for October bookkeeping", action: "create_invoice" }).kind).toBe("model");
   });
   test("the answer to our question goes to the model", () => {
-    expect(decide({ text: "Acme, bookkeeping", action: "create_invoice", lastAssistantText: ASK.invoice_details![0] }).kind).toBe("model");
+    expect(decide({ text: "Acme, bookkeeping", action: "create_invoice", lastAssistantText: ASK.invoice_question![0] }).kind).toBe("model");
   });
   test("an unsure invoice action goes to the model", () => {
     expect(decide({ text: "invoice", action: "create_invoice", actionConfidence: 0.5 }).kind).toBe("model");
@@ -129,10 +129,10 @@ describe("safety", () => {
     expect(decide({ intent: "out_of_scope", intentConfidence: 0.7, action: "other" }).kind).toBe("model");
   });
   test("2307 always goes to the model", () => {
-    expect(decide({ text: "make a 2307", intent: "bir_forms", action: "make_2307" })).toMatchObject({ kind: "model", path: "bir-money/2307" });
+    expect(decide({ text: "make a 2307", intent: "bir_forms", action: "make_2307" })).toMatchObject({ kind: "model", path: "money/2307" });
   });
   test("open questions go to the model", () => {
-    expect(decide({ text: "how do I grow my law firm", action: "other" })).toMatchObject({ kind: "model", path: "bir-money/open" });
+    expect(decide({ text: "how do I grow my law firm", action: "other" })).toMatchObject({ kind: "model", path: "money/open" });
   });
 });
 
@@ -155,6 +155,6 @@ describe("the regex checks match JuanStack's helpers", () => {
 
 test("the trace lists every branch tested, in order (for the Studio)", () => {
   const d = decide({ text: "create an invoice", action: "create_invoice" });
-  expect(d.trace.filter((s) => s.matched).map((s) => s.path)).toEqual(["bir-money", "bir-money/invoice", "bir-money/invoice/ask-details"]);
+  expect(d.trace.filter((s) => s.matched).map((s) => s.path)).toEqual(["money", "money/invoice", "money/invoice/ask-details"]);
   expect(d.trace[0]).toEqual({ path: "jev-down", matched: false });
 });

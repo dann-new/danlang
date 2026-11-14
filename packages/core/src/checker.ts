@@ -56,9 +56,14 @@ export function check(program: Program): Diagnostic[] {
             if (!allowed.includes(v))
               err(`"${v}" is not a value of field ${cond.field}. Allowed: ${allowed.join(", ")}.`, cond.pos);
         }
-        if (typeof cond.min === "string" && !(cond.min in program.lets))
-          err(`Unknown confidence "${cond.min}". Add \`let ${cond.min} = 0.8\`.`, cond.pos);
-        const min = typeof cond.min === "string" ? program.lets[cond.min] : cond.min;
+        let min: number | undefined;
+        if (typeof cond.min === "string") {
+          const v = program.lets[cond.min];
+          if (v === undefined) err(`Unknown confidence "${cond.min}". Add \`let ${cond.min} = 0.8\`.`, cond.pos);
+          else if (typeof v !== "number")
+            err(`"${cond.min}" holds messages, but after ">=" you need a number like 0.8.`, cond.pos);
+          else min = v;
+        } else min = cond.min;
         if (min !== undefined && (min < 0 || min > 1))
           err(`A confidence must be between 0 and 1 (got ${min}).`, cond.pos);
       }
@@ -85,7 +90,15 @@ export function check(program: Program): Diagnostic[] {
             b.pos,
           );
       }
-      if (b.leaf && "texts" in b.leaf && b.leaf.texts.some((t) => !t.trim())) err(`Branch "${b.id}" has an empty text.`, b.pos);
+      if (b.leaf && "texts" in b.leaf) {
+        const from = b.leaf.from;
+        const v = from ? program.lets[from] : undefined;
+        if (from && v === undefined)
+          err(`Unknown message list "${from}". Add \`let ${from} = ["...", "..."]\`.`, b.pos);
+        else if (from && typeof v === "number")
+          err(`"${from}" is a number, but ${b.leaf.kind} needs messages like ["Hi!", "Hello!"].`, b.pos);
+        else if (b.leaf.texts.some((t) => !t.trim())) err(`Branch "${b.id}" has an empty message.`, b.pos);
+      }
       walk(b.children, `"${b.id}"`);
     });
     const last = branches[branches.length - 1];

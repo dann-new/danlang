@@ -155,12 +155,12 @@ function parseAtom(c: Cursor): Cond {
   if (word === "has") return { kind: "has", check: c.ident("a check name after `has`"), pos };
   if (word === "asked") return { kind: "asked", ask: c.ident("an ask id after `asked`"), pos };
   let values: string[];
-  if (c.isWord("is")) {
+  if (c.isWord("is") || c.isWord("in"))
+    throw new DanError(`Use "=" here, like \`${word} = value\` or \`${word} = [a, b]\`.`, c.here());
+  if (!c.isOp("=")) throw new DanError(`Expected "=" after "${word}", like \`${word} = value\`.`, c.here());
+  c.i++;
+  if (c.isOp("[")) {
     c.i++;
-    values = [c.ident(`a value after \`${word} is\``)];
-  } else if (c.isWord("in")) {
-    c.i++;
-    c.op("[");
     values = [c.ident("a value")];
     while (c.isOp(",")) {
       c.i++;
@@ -168,7 +168,7 @@ function parseAtom(c: Cursor): Cond {
     }
     c.op("]");
   } else {
-    throw new DanError(`Expected \`is\` or \`in\` after "${word}".`, c.here());
+    values = [c.ident(`a value after \`${word} =\``)];
   }
   let min: number | string | undefined;
   if (c.isOp(">=")) {
@@ -193,17 +193,29 @@ function parseTexts(c: Cursor): string[] {
   if (c.isOp("[")) {
     c.i++;
     const out: string[] = [];
-    do {
-      if (out.length) c.i++;
+    while (!c.isOp("]")) {
       const s = c.peek();
-      if (s?.t !== "str") throw new DanError('Expected a text in quotes, like "Hello!".', c.here());
+      if (s?.t !== "str") throw new DanError('Expected a message in quotes, like "Hello!".', c.here());
       out.push(s.v);
       c.i++;
-    } while (c.isOp(","));
+      if (c.isOp(",")) c.i++; // a comma after the last message is fine
+      else break;
+    }
     c.op("]");
+    if (!out.length) throw new DanError("This list has no messages.", c.here());
     return out;
   }
-  throw new DanError('Expected a text in quotes, or a list like ["Hi!", "Hello!"].', c.here());
+  throw new DanError('Expected a message in quotes, or a list like ["Hi!", "Hello!"].', c.here());
+}
+
+/** Messages written right here ("Hi!" or ["Hi!", "Hello!"]), or the name of a `let` that holds them. */
+function parseMessages(c: Cursor): { texts: string[]; from?: string } {
+  const t = c.peek();
+  if (t?.t === "ident") {
+    c.i++;
+    return { texts: [], from: t.v };
+  }
+  return { texts: parseTexts(c) };
 }
 
 function parseLeaf(c: Cursor): Leaf {
@@ -212,11 +224,20 @@ function parseLeaf(c: Cursor): Leaf {
     case "model":
       return { kind: "model" };
     case "reply":
-      return { kind: "reply", texts: parseTexts(c) };
+      return { kind: "reply", ...parseMessages(c) };
     case "refuse":
-      return { kind: "refuse", texts: parseTexts(c) };
-    case "ask":
-      return { kind: "ask", id: c.ident("an ask id, like `ask expense_amount \"...\"`"), texts: parseTexts(c) };
+      return { kind: "refuse", ...parseMessages(c) };
+    case "ask": {
+      // `ask expense_messages` (a let), `ask expense_amount "How much?"` (an id + messages), or just `ask "How much?"`.
+      const first = c.peek();
+      if (first?.t === "str" || c.isOp("[")) {
+        const texts = parseTexts(c);
+        return { kind: "ask", id: `"${texts[0]}"`, texts };
+      }
+      const id = c.ident("a message list after `ask`, like `ask expense_messages`");
+      if (c.done()) return { kind: "ask", id, texts: [], from: id };
+      return { kind: "ask", id, ...parseMessages(c) };
+    }
     case "direct":
       return { kind: "direct", name: c.ident("a handler name after `direct`") };
     default:
@@ -228,13 +249,55 @@ function parseLeaf(c: Cursor): Leaf {
 
 type Container = { indent: number; children: Branch[]; childIndent?: number };
 
+/** How many "[" are still open on this line (brackets inside quotes don't count). */
+function openBrackets(code: string): number {
+  let depth = 0;
+  let inStr = false;
+  for (let i = 0; i < code.length; i++) {
+    const c = code[i];
+    if (inStr && c === "\\") i++;
+    else if (c === '"') inStr = !inStr;
+    else if (!inStr && c === "[") depth++;
+    else if (!inStr && c === "]") depth--;
+  }
+  return depth;
+}
+
+/**
+ * Lets a `let` list span several lines:
+ *   let hello = [
+ *     "Hi!",
+ *     "Hello!",
+ *   ]
+ * The lines are joined into one (keeping the first line's number for errors). Comments inside are dropped.
+ */
+function joinLists(lines: string[], file: string): { raw: string; lineNo: number }[] {
+  const out: { raw: string; lineNo: number }[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i]!;
+    if (!/^let\s/.test(raw)) {
+      out.push({ raw, lineNo: i + 1 });
+      continue;
+    }
+    let [code] = splitComment(raw);
+    const start = i;
+    while (openBrackets(code) > 0) {
+      i++;
+      if (i >= lines.length)
+        throw new DanError("This list is never closed. Add a \"]\" at the end.", { file, line: start + 1, col: 1 });
+      code += " " + splitComment(lines[i]!)[0].trim();
+    }
+    out.push({ raw: code, lineNo: start + 1 });
+  }
+  return out;
+}
+
 export function parse(text: string, file = "main.dan"): FileAst {
   const ast: FileAst = { file, uses: [], lets: [], fields: [], checks: [], flows: [] };
-  const lines = text.split(/\r?\n/);
+  const lines = joinLists(text.split(/\r?\n/), file);
   let stack: Container[] | null = null; // set while inside a flow
 
-  lines.forEach((raw, idx) => {
-    const lineNo = idx + 1;
+  lines.forEach(({ raw, lineNo }) => {
     const at = (col: number): Pos => ({ file, line: lineNo, col });
     // A `check` line holds a raw regex, which may contain # or ". Read it whole: no end-of-line comment there.
     const isCheck = /^check\s/.test(raw);
@@ -261,10 +324,17 @@ export function parse(text: string, file = "main.dan"): FileAst {
         const name = c.ident("a name after `let`");
         c.op("=");
         const v = c.peek();
-        if (v?.t !== "num") throw new DanError("A `let` holds a number, like `let sure = 0.8`.", c.here());
-        c.i++;
+        let value: number | string[];
+        if (v?.t === "num") {
+          c.i++;
+          value = v.v;
+        } else if (v?.t === "str" || c.isOp("[")) {
+          value = parseTexts(c);
+        } else {
+          throw new DanError('A `let` holds a number (let sure = 0.8) or messages (let hi = ["Hi!", "Hello!"]).', c.here());
+        }
         c.end();
-        ast.lets.push({ name, value: v.v, pos });
+        ast.lets.push({ name, value, pos });
       } else if (kw === "field") {
         const name = c.ident("a field name after `field`");
         c.op("=");
