@@ -220,7 +220,7 @@ function parseMessages(c: Cursor): { texts: string[]; from?: string } {
 }
 
 function parseLeaf(c: Cursor): Leaf {
-  const word = c.ident("what to do: model, reply, ask, refuse, direct, or a flow name");
+  const word = c.ident("what to do: model, reply, ask, refuse, direct, uproot, or a flow name");
   switch (word) {
     case "model":
       return { kind: "model" };
@@ -238,6 +238,19 @@ function parseLeaf(c: Cursor): Leaf {
       const id = c.ident("a message list after `ask`, like `ask order_question`");
       if (c.done()) return { kind: "ask", id, texts: [], from: id };
       return { kind: "ask", id, ...parseMessages(c) };
+    }
+    case "uproot": {
+      // uproot, uproot(2), uproot(all)
+      if (!c.isOp("(")) return { kind: "uproot", levels: 1 };
+      c.i++;
+      const t = c.peek();
+      let levels: number | "all";
+      if (t?.t === "num" && Number.isInteger(t.v) && t.v >= 1) levels = t.v;
+      else if (t?.t === "ident" && t.v === "all") levels = "all";
+      else throw new DanError("Write uproot(1), uproot(2)... or uproot(all).", c.here());
+      c.i++;
+      c.op(")");
+      return { kind: "uproot", levels };
     }
     case "direct":
       return { kind: "direct", name: c.ident("a handler name after `direct`") };

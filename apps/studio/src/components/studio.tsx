@@ -34,6 +34,7 @@ const COLORS: Record<NodeKind, string> = {
   free: "var(--free)",
   ask: "var(--ask)",
   model: "var(--model)",
+  uproot: "var(--k-uproot)",
 };
 
 const usd = (n: number | null | undefined) => (n == null ? "?" : n < 0.001 ? `$${n.toFixed(7)}` : `$${n.toFixed(4)}`);

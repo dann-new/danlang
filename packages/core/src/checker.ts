@@ -89,10 +89,12 @@ export function check(program: Program): Diagnostic[] {
         usedFlows.add(b.leaf.flow);
         if (!program.flows[b.leaf.flow])
           err(
-            `"${b.leaf.flow}" is not a flow or an action. Use model, reply, ask, refuse, direct, or the name of a flow.`,
+            `"${b.leaf.flow}" is not a flow or an action. Use model, reply, ask, refuse, direct, uproot, or the name of a flow.`,
             b.pos,
           );
       }
+      if (b.leaf?.kind === "uproot" && where === `flow ${program.entry}`)
+        err(`"${b.id}" uproots from the top of flow ${program.entry}, where there's nowhere to go up to. Use model or reply instead.`, b.pos);
       if (b.leaf && "texts" in b.leaf) {
         const from = b.leaf.from;
         const v = from ? program.lets[from] : undefined;

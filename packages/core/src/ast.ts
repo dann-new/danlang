@@ -33,7 +33,9 @@ export type Leaf =
   /** The host app answers with its own code (e.g. an order lookup). No LLM. */
   | { kind: "direct"; name: string }
   /** Continue inside another flow (its branches become this branch's children). */
-  | { kind: "flow"; flow: string };
+  | { kind: "flow"; flow: string }
+  /** Move the conversation up `levels` nodes (or to the top), then check the same message again from there. */
+  | { kind: "uproot"; levels: number | "all" };
 
 export type Branch = {
   id: string;

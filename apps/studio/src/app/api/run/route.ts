@@ -1,4 +1,4 @@
-import { createEngine } from "@danlang/core";
+import { createEngine, type ConversationState } from "@danlang/core";
 import { askModel, classify } from "@/lib/providers";
 import { loadFolder } from "@/lib/program";
 
@@ -10,6 +10,8 @@ type Body = {
   manual?: Record<string, string>;
   hostChecks?: Record<string, boolean>;
   askModel?: boolean;
+  /** Where the conversation is waiting (from the previous answer). */
+  state?: ConversationState;
 };
 
 export async function POST(request: Request) {
@@ -38,6 +40,7 @@ export async function POST(request: Request) {
     facts,
     confidence,
     ...(body.lastReply ? { lastReply: body.lastReply } : {}),
+    ...(body.state ? { state: body.state } : {}),
   });
 
   const model = decision.kind === "model" && body.askModel ? await askModel(body.message) : null;
