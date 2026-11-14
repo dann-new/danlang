@@ -1,0 +1,41 @@
+{
+  "name": "danlang-vscode",
+  "displayName": "danlang",
+  "description": "Syntax colors and editing support for danlang (.dan) chat-routing flows.",
+  "version": "0.0.1",
+  "publisher": "danlang",
+  "private": true,
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": ["Programming Languages"],
+  "scripts": {
+    "typecheck": "node -e \"JSON.parse(require('fs').readFileSync('syntaxes/dan.tmLanguage.json','utf8'))\"",
+    "install:local": "node install-local.mjs"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "dan",
+        "aliases": ["danlang", "dan"],
+        "extensions": [".dan"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "dan",
+        "scopeName": "source.dan",
+        "path": "./syntaxes/dan.tmLanguage.json"
+      }
+    ],
+    "configurationDefaults": {
+      "[dan]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.detectIndentation": false,
+        "editor.foldingStrategy": "indentation"
+      }
+    }
+  }
+}

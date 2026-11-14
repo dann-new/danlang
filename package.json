@@ -8,7 +8,8 @@
   "scripts": {
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "verify": "pnpm typecheck && pnpm test"
+    "verify": "pnpm typecheck && pnpm test",
+    "vscode:install": "pnpm --filter danlang-vscode install:local"
   },
   "devDependencies": {
     "typescript": "catalog:"
