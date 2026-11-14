@@ -1,0 +1,17 @@
+# The example from lesson 2 ("Your first flow"), ready for the Studio.
+# Rules are read from top to bottom. The first one that fits wins.
+#
+# Same rules as the lesson. The only addition: a short description for each topic.
+# The descriptions are what the classifier reads, so it can pick the topic for real messages.
+# (Without them, the Studio shows a "topic" dropdown and you pick it yourself.)
+
+field topic "What is the message about?" = [
+  greeting "The person says hello, hi, good morning, or makes small talk.",
+  thanks "The person says thank you or shows they are grateful.",
+  other "Anything else.",
+]
+
+flow main
+  say-hi: when topic == greeting -> reply "Hi!"
+  say-welcome: when topic == thanks -> reply "You're welcome!"
+  open: else -> model
